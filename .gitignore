@@ -7,3 +7,4 @@
 System/*
 !System/*.ini
 !System/*.txt
+!System/DeusEx.u
