@@ -5,7 +5,7 @@ class AugmentationDisplayWindow extends HUDBaseWindow;
 
 var ViewportWindow winZoom;
 var float margin;
-var float corner;
+var float corner;				// Size of the reticle
 
 var bool bDefenseActive;
 var int defenseLevel;
@@ -1389,9 +1389,18 @@ function bool IsHeatSource(Actor A)
    }
 	else if (A.IsA('DeusExCarcass'))
 		return True;   
+		return True;
 	else if (A.IsA('FleshFragment'))
 		return True;
-   else
+	else if (A.IsA('DeusExWeapon'))
+		return True;
+	else if (A.IsA('DeusExAmmo'))
+		return True;
+	else if (A.IsA('DeusExPickup'))
+		return True;
+	else if (A.IsA('Containers'))
+		return True;
+	else
 		return False;
 }
 

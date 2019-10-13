@@ -250,4 +250,5 @@ defaultproperties
      ItemName="DEFAULT PICKUP NAME - REPORT THIS AS A BUG"
      RespawnTime=30.000000
      LandSound=Sound'DeusExSounds.Generic.PaperHit1'
+		 bVisionImportant=True
 }

@@ -4368,4 +4368,5 @@ defaultproperties
 		 handleAbility=1.0
 		 aimAbility=1.0
 		 numSlugsOverride=0
+		 bVisionImportant=True
 }

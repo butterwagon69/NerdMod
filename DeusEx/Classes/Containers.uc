@@ -95,4 +95,5 @@ defaultproperties
      numThings=1
      bFlammable=True
      bCanBeBase=True
+		 bVisionImportant=True
 }

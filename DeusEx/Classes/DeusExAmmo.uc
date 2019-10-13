@@ -84,4 +84,5 @@ defaultproperties
 	 HitDamageSpecial=0
 	 fSpreadMult=1.0
 	 dropRate=0
+	 bVisionImportant=True
 }
