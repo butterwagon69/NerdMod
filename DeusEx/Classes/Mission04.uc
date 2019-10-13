@@ -46,6 +46,18 @@ function FirstFrame()
 					pawn.EnterWorld();
 		}
 	}
+	else if (localURL == "04_NYC_SMUG")
+	{
+		// unhide Ford if you've rescued him
+		if (flags.GetBool('FordSchickRescued'))
+		{
+			foreach AllActors(class'ScriptedPawn', pawn)
+				if (pawn.IsA('FordSchick'))
+					pawn.EnterWorld();
+
+			flags.SetBool('SchickThankedPlayer', True);
+		}
+	}
 }
 
 // ----------------------------------------------------------------------
