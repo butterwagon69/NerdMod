@@ -21,4 +21,8 @@ defaultproperties
      CollisionRadius=22.500000
      CollisionHeight=16.000000
      bCollideActors=True
+     ItemName="Throwing Knives"
+     ItemArticle="some"
+     Icon=Texture'DeusExUI.Icons.BeltIconShuriken'
+     largeIcon=Texture'DeusExUI.Icons.LargeIconShuriken'
 }
