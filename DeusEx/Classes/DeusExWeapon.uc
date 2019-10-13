@@ -116,6 +116,7 @@ var Vector placeLocation;						// used for prox. mine placement
 var Vector placeNormal;							// used for prox. mine placement
 var Mover placeMover;							// used for prox. mine placement
 
+var() int numSlugsOverride;					// Force override ammo numslugs
 var float ShakeTimer;
 var float ShakeYaw;
 var float ShakePitch;
@@ -2285,6 +2286,11 @@ simulated function Projectile ProjectileFire(class<projectile> ProjClass, float 
 		numProj = 3;
 	else
 		numProj = 1;
+	if (numSlugsOverride > 0){
+		numProj = numSlugsOverride;
+	} else {
+		numProj = DeusExAmmo(AmmoType).numSlugs;
+	}
 
 	GetAxes(Pawn(owner).ViewRotation,X,Y,Z);
 	Start = ComputeProjectileStart(X, Y, Z);
@@ -2394,12 +2400,6 @@ simulated function TraceFire( float Accuracy )
 	StartTrace = ComputeProjectileStart(X, Y, Z);
 	AdjustedAim = pawn(owner).AdjustAim(1000000, StartTrace, 2.75*AimError, False, False);
 
-	// check to see if we are a shotgun-type weapon
-	if (AreaOfEffect == AOE_Cone)
-		numSlugs = 5;
-	else
-		numSlugs = 1;
-
 	// if there is a scope, but the player isn't using it, decrease the accuracy
 	// so there is an advantage to using the scope
 	if (bHasScope && !bZoomed)
@@ -2408,6 +2408,23 @@ simulated function TraceFire( float Accuracy )
 	// also, if the scope is on, zero the accuracy so the shake makes the shot inaccurate
 	else if (bLasing || bZoomed)
 		Accuracy = 0.0;
+	if (numSlugsOverride > 0){
+		numSlugs = numSlugsOverride;
+	} else {
+		numSlugs = DeusExAmmo(AmmoType).numSlugs;
+		if (numSlugs == 0){
+			if (AreaOfEffect == AOE_Cone){
+				numSlugs = 5;
+			} else {
+				numSlugs = 1;
+			}
+		}
+	}
+	Accuracy = BaseAccuracy * DeusExAmmo(AmmoType).fSpreadMult;
+	if (numSlugs > 1)
+	{
+		Accuracy *= float(Default.AccurateRange) / float(AccurateRange);
+	}
 
 
 	for (i=0; i<numSlugs; i++)
@@ -3852,4 +3869,5 @@ defaultproperties
      bNoSmooth=False
      Mass=10.000000
      Buoyancy=5.000000
+		 numSlugsOverride=0
 }
