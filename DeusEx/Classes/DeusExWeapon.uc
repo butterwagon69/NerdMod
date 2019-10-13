@@ -97,7 +97,7 @@ var() class<Ammo>		AmmoNames[3];			// three possible types of ammo per weapon
 var() class<Projectile> ProjectileNames[3];		// projectile classes for different ammo
 var() EAreaType			AreaOfEffect;			// area of effect of the weapon
 var() bool				bPenetrating;			// shot will penetrate and cause blood
-var() float				StunDuration;			// how long the shot stuns the target
+var() float				StunDuration;			// how long the shot stuns the target <-- LIES!!! ScriptedPawn ignores this!!!
 var() bool				bHasMuzzleFlash;		// does this weapon have a flash when fired?
 var() bool				bHandToHand;			// is this weapon hand to hand (no ammo)?
 var globalconfig vector SwingOffset;     // offsets for this weapon swing.
@@ -116,8 +116,36 @@ var Vector placeLocation;						// used for prox. mine placement
 var Vector placeNormal;							// used for prox. mine placement
 var Mover placeMover;							// used for prox. mine placement
 
+
+var float currentShake;
+var rotator aimDeviation;						// how far our actuall hitpoint deviates from our aim
+var rotator aimActual;							// where we are actually aiming
+var float currentYawRate;
+var float currentPitchRate;
+var float shakeDamping;
+var float shakeSpring;
+var() float pCorrectAim;
+var() float dCorrectAim;
+var float recoilEffect;
+var float wobbleTime;							// When we run we wobble. What's the current time to wobble?
+var() float wobbleTimeLimit;						// What's the period of wobbling?
+var LaserEmitter E2;
+var LaserEmitter E3;
 var() float fFireAnimFactor;
+var() float HitDamageMultiplier;  			// if we have a special ammo but we are a shitty gun, do less damage than what the ammo says
+var rotator lastViewRotation;
+var rotator lastRotationDelta;
+var rotator lastViewRotationRate;
+var() float handleAbility;					// How much does are aim get messed up by running and turning
+var() float aimAbility;						// How tight can we aim under ideal circumstances
+var bool bProjectileGravity;					// What's the gravitational acceleration of the projectile
+var() int ammoConsumption;					// How much ammo to use per shot
 var() int numSlugsOverride;					// Force override ammo numslugs
+var() float recoilSpeed;						// How fast is the muzzle rising?
+var() float weaponSkill;
+var() float runWobbleFreq;
+var() bool bCanShootFaster;
+
 
 var float ShakeTimer;
 var float ShakeYaw;
@@ -280,7 +308,11 @@ function TravelPostAccept()
 	if (!bInstantHit)
 	{
 		if (ProjectileClass != None)
-			ProjectileSpeed = ProjectileClass.Default.speed;
+		{
+			ProjectileSpeed = ProjectileClass.Default.speed * GetDamageMult();
+			bProjectileGravity = !class<DeusExProjectile>(ProjectileClass).Default.bIgnoresGravity;
+		}
+
 
 		// make sure the projectile info matches the actual AmmoType
 		// since we can't "var travel class" (AmmoName and ProjectileClass)
@@ -348,7 +380,7 @@ function bool HandlePickupQuery(Inventory Item)
 	local bool bResult;
 	local class<Ammo> defAmmoClass;
 	local Ammo defAmmo;
-	
+
 	// make sure that if you pick up a modded weapon that you
 	// already have, you get the mods
 	W = DeusExWeapon(Item);
@@ -562,29 +594,242 @@ simulated function float GetWeaponSkill()
 	}
 	return FClamp(value, -0.8, 0.0);
 }
+
+function float GetDamageMult(){
+	local float mult;
+	mult = 1.0;
+	if (bHandToHand && (DeusExPlayer(Owner) != None))
+	{
+		mult = DeusExPlayer(Owner).AugmentationSystem.GetAugLevelValue(class'AugCombat');
+		if (mult == -1.0)
+			mult = 1.0;
+		mult += -2.0 * weaponSkill;
+	} else {
+		mult *= float(AccurateRange) / float(Default.AccurateRange);
 	}
-	return value;
+	return mult;
 }
 
+function string GetMOAVal(){
+	// Handy function to write out accuracy as MOA rather than
+	// as a percentage
+	// Based on empirical testing:
+	// baseaccuracy=1 => deviation of 8.38 degrees
+	local float degreeMult, minuteMult;
+	degreeMult = 0.1193;
+	minuteMult = 0.001988;
+	if (baseaccuracy > 2 * degreeMult){
+		// More than a degree
+		return(int(baseAccuracy / degreeMult) $ " Degrees");
+	} else {
+		return(int(baseAccuracy / minuteMult) $ " MOA");
+	}
+
+}
+
+// New Stuff!
+simulated function float AdjustAimShot(){
+	// Adjusts the aim when we get shot
+	return 0;
+}
+
+simulated function AdjustAimPassive(){
+	local float yawFreqAdjust;
+	local float pitchFreqAdjust;
+	local float skillAdjust;
+	local float crouchAdjust;
+	local float factor;
+	yawFreqAdjust = 1.0 - Square(FRand() - 0.5);
+	pitchFreqAdjust = 1.0 - Square(FRand() - 0.5);
+	if (bHandToHand){
+		skillAdjust = 8192.0 * Square(Lerp(FMax(- weaponSkill / 0.6, 0), 1.0, 0.0));
+		factor = skillAdjust;
+	} else {
+		if (DeusExPlayer(Owner).bIsCrouching){
+			crouchAdjust = 0.25;
+		} else {
+			crouchAdjust = 1;
+		}
+		skillAdjust = 750.0 * Lerp(FMax(- weaponSkill / 0.6, 0), 1.0, 0.0);
+		factor = crouchAdjust * skillAdjust / aimAbility;
+	}
+
+	currentYawRate += factor * sin(6.28 * 0.5 *  yawFreqAdjust * wobbleTime);
+	currentPitchRate += factor * cos(6.28 * 0.5 * pitchFreqAdjust * wobbleTime);
+}
+
+
+
+
+simulated function AdjustAimMove(float moveSpeed){
+	local float yawFreqAdjust;
+	local float pitchFreqAdjust;
+	local float speedAdjust;
+	local float wobbleFreq;
+	local float skillAdjust;
+	local float factor;
+	skillAdjust = Lerp(FMax(- weaponSkill / 0.7, 0), 1.0, 0.1);
+	wobbleFreq = FMax(moveSpeed / runWobbleFreq, 0.05) ;
+	speedAdjust = 500*Square(moveSpeed / 64.0) ;
+	yawFreqAdjust = 1.0 - Square(FRand() - 0.5);
+	pitchFreqAdjust = 1.0 - Square(FRand() - 0.5);
+	factor = skillAdjust * speedAdjust / handleAbility;
+	currentYawRate += factor * sin(6.28 * wobbleFreq * yawFreqAdjust * wobbleTime);
+	currentPitchRate += factor * cos(6.28 * wobbleFreq * pitchFreqAdjust * wobbleTime);
+}
+
+simulated function AdjustAimTurn(){
+	// This function compensates for the
+	// loss of accuracy when turning based
+	// on weapon skill
+	local float skillAdjust;
+
+	local float factor;
+	skillAdjust = Lerp(FMax(- weaponSkill / 0.8, 0), 1.0, 0.05);
+	factor = (1 - skillAdjust / handleAbility);
+	aimActual.Pitch += factor * lastRotationDelta.Pitch;
+	aimActual.Yaw += factor * lastRotationDelta.Yaw;
+}
+
+simulated function DissipateRecoil(float deltaTime){
+	// Dissipates the recoil speed over time
+	local float skillAdjust;
+	skillAdjust = 20 * Lerp(FClamp(- weaponSkill / 0.7, 0, 1), 0.5, 1);
+	recoilSpeed = FMax(0, recoilSpeed - recoilSpeed * skillAdjust * deltaTime);
+}
+
+simulated function TakeRecoilImpulse(){
+	// reduce the recoil based on weaponSkill
+	local float recoil;
+
+	recoil = FMax(recoilStrength * Lerp(-weaponSkill/ 0.7, 1, 0), 0) / 6.00;
+	if (DeusExPlayer(Owner) != None){
+		currentYawRate += recoil * (Rand(8192) - 4096);
+		recoilEffect = FClamp(recoilEffect + recoilStrength, 0, 1);
+		// New Stuff
+		recoilSpeed += 10000 * recoil;
+	} else {
+		// Pawns are aimbots so we need to mess up their aim more
+		recoilSpeed = 0;
+		currentYawRate += recoil * (Rand(8192) - 4096);
+		currentPitchRate += recoil * (Rand(8192) - 4096);
+	}
+}
+
+simulated function float AdjustAimRecoil(float recoil, float deltaTime){
+	local float pitchAdjust;
+
+	// Only the player has to deal with muzzle climb
+	// Pawns just lose accuracy because they aren't smart enough
+	if (DeusExPlayer(Owner) != None){
+		// pitchAdjust = recoil * Rand(4096);
+		// currentPitchRate -= pitchAdjust;
+		// DeusExPlayer(Owner).ViewRotation.Yaw += deltaTime * (Rand(4096) - 2048) * recoil;
+		// DeusExPlayer(Owner).ViewRotation.Pitch -= deltaTime * currentPitchRate;
+		// Owner.BroadcastMessage(recoil);
+
+
+	}
+	else if  (Pawn(Owner) != None){
+		currentPitchRate += recoil * (Rand(4096) - 2048);
+	}
+}
+
+simulated function LimitAimWander(){
+	// Limits the aim wander to finite values. maxEnergy is the
+	// "energy" in the sway; sum of "spring energy" and "kinetic energy"
+	local float KE, PE, U, ratio, cosx, cosy, radius, velcosx, velcosy, speed, dot, maxEnergy;
+	local rotator deviation;
+	local float maxRadius;
+	local pawn p;
+	p = pawn(Owner);
+	if (DeusExPlayer(Owner) != None){
+		maxRadius = 4096 * Lerp(-weaponSkill / 0.8, 1.5, 0.25);
+	} else if (pawn(Owner) != None){
+		maxRadius = 4096;
+	}
+
+
+	deviation.Pitch = aimActual.Pitch - p.ViewRotation.Pitch;
+	deviation.Yaw = aimActual.Yaw - p.ViewRotation.Yaw;
+	deviation = Normalize(deviation);
+	// deviation.Pitch = -aimDeviation.Pitch;
+	// deviation.Yaw = -aimDeviation.Yaw;
+	radius = sqrt(square(deviation.Pitch) + square(deviation.Yaw));
+	cosx = deviation.Yaw / radius;
+	cosy = deviation.Pitch / radius;
+
+	if (radius > maxRadius){
+		aimActual.Yaw = p.ViewRotation.Yaw + cosx * maxRadius;
+		aimActual.Pitch = p.ViewRotation.Pitch + cosy * maxRadius;
+		aimActual = Normalize(aimActual);
+		currentYawRate=0;
+		currentPitchRate=0;
+		dot = (currentPitchRate + lastViewRotationRate.Pitch) * cosx
+			+ (currentYawRate + lastViewRotationRate.Yaw) * cosy;
+		if (dot > 0){
+			// Now we update dot to be the perpendicular component...
+			dot = (currentPitchRate + lastViewRotationRate.Pitch) * cosy
+			- (currentYawRate + lastViewRotationRate.Yaw) * cosx;
+			currentYawRate = dot*cosy + lastViewRotationRate.Yaw;
+			currentPitchRate = -dot*cosx + lastViewRotationRate.Pitch;
+		}
+	}
+
+	maxEnergy = 0.5*square(maxRadius) * shakeSpring;
+	KE = CalculateAimEnergyK();
+	ratio = maxEnergy / KE;
+	if (KE > maxEnergy){
+		currentYawRate = lastViewRotationRate.Yaw + ratio * currentYawRate;
+		currentPitchRate = lastViewRotationRate.Pitch + ratio * currentPitchRate;
+	}
+}
+
+simulated function float CalculateAimEnergyP(){
+	local float PEx, PEy;
+
+	// Magic number converts angle units to radians
+	PEx = 0.5*shakeSpring*Square(aimDeviation.Yaw * 0.0000958737992);
+	PEy = 0.5*shakeSpring*Square(aimDeviation.Pitch * 0.0000958737992);
+	return PEx + PEy;
+}
+
+simulated function float CalculateAimEnergyK(){
+	local float KEx, KEy;
+	// Magic number converts angle units to radians
+	KEx = 0.5*Square((currentYawRate + lastViewRotationRate.Yaw) * 0.0000958737992);
+	KEy = 0.5*Square((currentPitchRate + lastViewRotationRate.Pitch) * 0.0000958737992);
+	return KEx + KEy;
+}
+
+simulated function float CalculateAimEnergy(){
+	return CalculateAimEnergyK() + CalculateAimEnergyP();
+}
+
+
+// New Stuff! Modified this so that BaseAccuracy is added elsewhere
 // calculate the accuracy for this weapon and the owner's damage
+// Checked that this doesn't screw up pawns aiming up!
 simulated function float CalculateAccuracy()
 {
 	local float accuracy;	// 0 is dead on, 1 is pretty far off
 	local float tempacc, div;
-   local float weapskill; // so we don't keep looking it up (slower).
+    local float weapskill; // so we don't keep looking it up (slower).
 	local int HealthArmRight, HealthArmLeft, HealthHead;
 	local int BestArmRight, BestArmLeft, BestHead;
 	local bool checkit;
 	local DeusExPlayer player;
-
-	accuracy = BaseAccuracy;		// start with the weapon's base accuracy
-   weapskill = GetWeaponSkill();
+	// New Stuff! commenting BaseAccuracy out because we only want to use
+	// CalculateAccuracy to compute weaponSkill- and aug-based errors
+	//accuracy = BaseAccuracy;		// start with the weapon's base accuracy
+	accuracy = 0.7;					// start with the pistol's base accuracy
+    weapskill = weaponSkill;
 
 	player = DeusExPlayer(Owner);
 
 	if (player != None)
 	{
-		// check the player's skill
+		// check the player's weaponSkill
 		// 0.0 = dead on, 1.0 = way off
 		accuracy += weapskill;
 
@@ -601,7 +846,11 @@ simulated function float CalculateAccuracy()
 	{
 		// update the weapon's accuracy with the ScriptedPawn's BaseAccuracy
 		// (BaseAccuracy uses higher values for less accuracy, hence we add)
-		accuracy += ScriptedPawn(Owner).BaseAccuracy;
+
+
+		// New Stuff!!
+		//accuracy += ScriptedPawn(Owner).BaseAccuracy;
+		accuracy += weapskill;
 
 		// get the health values for the NPC
 		HealthArmRight = ScriptedPawn(Owner).HealthArmRight;
@@ -646,10 +895,10 @@ simulated function float CalculateAccuracy()
 		tempacc = accuracy;
 		if (standingTimer > 0)
 		{
-			// higher skill makes standing bonus greater
+			// higher weaponSkill makes standing bonus greater
 			div = Max(15.0 + 29.0 * weapskill, 0.0);
 			accuracy -= FClamp(standingTimer/div, 0.0, 0.6);
-	
+
 			// don't go too low
 			if ((accuracy < 0.1) && (tempacc > 0.1))
 				accuracy = 0.1;
@@ -663,8 +912,71 @@ simulated function float CalculateAccuracy()
    if (Level.NetMode != NM_Standalone)
       if (accuracy < MinWeaponAcc)
          accuracy = MinWeaponAcc;
+	 // New Stuff!
+	 // pawns were too innaccurate.
+	if (ScriptedPawn(Owner) != None){
+		accuracy /= 1.66;
+	}
 
+	// New Stuff!
 	return accuracy;
+}
+
+
+
+
+// New Stuff! New Function!
+// Calculates how much to spring the aim back
+// based on weaponSkill level
+simulated function CalculateAimSpring()
+{
+	local float speed;
+	local float speedFactor;
+	local float skillFactor;
+	local float springFactor;
+	speed = VSize(owner.Velocity);
+	skillFactor = (-weaponSkill / 0.7);
+	speedFactor = FClamp(1 - Square((speed / 700) + weaponSkill), 0.1, 1);
+	springFactor = FClamp(speedFactor * skillFactor, 0.1, 1);
+	//shakeSpring = pCorrectAim * FClamp(1.0 - CalculateAccuracy(), 0.01, 1.0);
+	shakeSpring = pCorrectAim * Lerp(
+		FMax(- weaponSkill / 0.6, 0), 0.3, 1.0
+	);
+	//shakeSpring = pCorrectAim * speedFactor;
+}
+
+// New Stuff! New Function!
+// Calculates how much to damp the aim swing
+// based on weaponSkill level
+simulated function CalculateAimDamp()
+{
+
+	local float criticaldamp;
+	local float speed;
+	local float speedFactor;
+	local float skillFactor;
+	local float dampFactor;
+	speed = VSize(owner.Velocity);
+	skillFactor = Lerp(
+		FMax(- weaponSkill / 0.6, 0), 0.3, 1.0
+	);
+	// 350: full speed of JC normally
+	speedFactor = Lerp(FClamp(1 - Square(speed / 700), 0, 1), 0.3, 1);
+	dampFactor = FClamp(skillFactor * speedFactor, 0.1, 1);
+	criticaldamp = 2.0*sqrt(shakeSpring);
+	shakeDamping = dampFactor * criticaldamp ;
+}
+
+
+//
+// Special aim function for computing throwing knife accuracy
+// Throwing knives don't get penalized for movement etc
+// Skill-based only
+simulated function float CalculateHandToHandProjectileAccuracy(){
+	local float limit;
+	limit = 0.6;
+
+	return 4 * Lerp(- FClamp(weaponSkill, -limit, 0) / limit, 1, 0);
 }
 
 //
@@ -1104,13 +1416,30 @@ simulated function Tick(float deltaTime)
 	local rotator rot;
 	local float beepspeed, recoil;
 	local DeusExPlayer player;
-   local Actor RealTarget;
+    local Actor RealTarget;
 	local Pawn pawn;
+	local float aimLimit;
+	local float viewYawRate;
+	local float viewPitchRate;
+	local float viewYawAccel;
+	local float viewPitchAccel;
+	local float aimAlpha;
 
+	weaponSkill = GetWeaponSkill();
 	player = DeusExPlayer(Owner);
 	pawn = Pawn(Owner);
+	pawn.ViewRotation = Normalize(pawn.ViewRotation);
+	viewYawRate = (pawn.ViewRotation.Yaw - lastViewRotation.Yaw) / deltaTime;
+	viewPitchRate = (pawn.ViewRotation.Pitch - lastViewRotation.Pitch) / deltaTime;
+	viewYawAccel = (viewYawRate - lastViewRotationRate.Yaw) / deltaTime;
+	viewPitchAccel = (viewPitchRate - lastViewRotationRate.Pitch) / deltaTime;
+	lastRotationDelta.Yaw = pawn.ViewRotation.Yaw - lastViewRotation.Yaw;
+	lastRotationDelta.Pitch = pawn.ViewRotation.Pitch - lastViewRotation.Pitch;
+	wobbleTime += deltaTime;
 
-	Super.Tick(deltaTime);
+	if (wobbleTime > wobbleTimeLimit){
+		wobbleTime -= wobbleTimeLimit;
+	}
 
 	// don't do any of this if this weapon isn't currently in use
 	if (pawn == None)
@@ -1132,7 +1461,7 @@ simulated function Tick(float deltaTime)
    }
 
 	// all this should only happen IF you have ammo loaded
-	if (ClipCount < ReloadCount)
+	if (ClipCount <= (ReloadCount - ammoConsumption))
 	{
 		// check for LAM or other placed mine placement
 		if (bHandToHand && (ProjectileClass != None) && (!Self.IsA('WeaponShuriken')))
@@ -1170,20 +1499,20 @@ simulated function Tick(float deltaTime)
          {
             Target = AcquireTarget();
             RealTarget = Target;
-            
+
             // calculate the range
             if (Target != None)
                TargetRange = Abs(VSize(Target.Location - Location));
-            
+
             // update our timers
             //SoundTimer += deltaTime;
             MaintainLockTimer -= deltaTime;
-            
+
             // check target and range info to see what our mode is
             if ((Target == None) || IsInState('Reload'))
             {
                if (MaintainLockTimer <= 0)
-               {				
+               {
                   SetLockMode(LOCK_None);
                   MaintainLockTimer = 0;
                   LockTarget = None;
@@ -1223,16 +1552,16 @@ simulated function Tick(float deltaTime)
                }
                else
                {
-                  // change LockTime based on skill
-                  // -0.7 = max skill
+                  // change LockTime based on weaponSkill
+                  // -0.7 = max weaponSkill
                   // DEUS_EX AMSD Only do weaponskill check here when first checking.
                   if (LockTimer == 0)
                   {
-                     LockTime = FMax(Default.LockTime + 3.0 * GetWeaponSkill(), 0.0);
+                     LockTime = FMax(Default.LockTime + 3.0 * weaponSkill, 0.0);
                      if ((Level.Netmode != NM_Standalone) && (LockTime < 0.25))
                         LockTime = 0.25;
                   }
-                  
+
                   LockTimer += deltaTime;
                   if (LockTimer >= LockTime)
                   {
@@ -1244,7 +1573,7 @@ simulated function Tick(float deltaTime)
                   }
                }
             }
-            
+
             // act on the lock mode
             switch (LockMode)
             {
@@ -1252,17 +1581,17 @@ simulated function Tick(float deltaTime)
                TargetMessage = msgNone;
                LockTimer -= deltaTime;
                break;
-               
+
             case LOCK_Invalid:
                TargetMessage = msgLockInvalid;
                LockTimer -= deltaTime;
                break;
-               
+
             case LOCK_Range:
                TargetMessage = msgLockRange @ Int(TargetRange/16) @ msgRangeUnit;
                LockTimer -= deltaTime;
                break;
-               
+
             case LOCK_Acquire:
                TargetMessage = msgLockAcquire @ Left(String(LockTime-LockTimer), 4) @ msgTimeUnit;
                beepspeed = FClamp((LockTime - LockTimer) / Default.LockTime, 0.2, 1.0);
@@ -1272,7 +1601,7 @@ simulated function Tick(float deltaTime)
                   SoundTimer = 0;
                }
                break;
-               
+
             case LOCK_Locked:
                // If maintaining a lock, or getting a new one, increment maintainlocktimer
                if ((RealTarget != None) && ((RealTarget == LockTarget) || (LockTarget == None)))
@@ -1295,13 +1624,19 @@ simulated function Tick(float deltaTime)
          }
          else
          {
-            LockMode = LOCK_None;
-            TargetMessage = msgNone;
-            LockTimer = 0;
-            MaintainLockTimer = 0;
-            LockTarget = None;
+			  LockMode = LOCK_None;
+			  if (bLasing && (Emitter != None))
+			  {
+				  TargetRange = VSize(Owner.Location - Emitter.spot[0].Location);
+				  TargetMessage = msgLockRange @ Int(TargetRange / 16) @ msgRangeUnit;
+			  } else {
+				   TargetMessage=msgNone;
+			  }
+			  MaintainLockTimer = 0;
+			  LockTarget = None;
+			  LockTimer = 0;
          }
-         
+
          if (LockTimer < 0)
             LockTimer = 0;
       }
@@ -1309,8 +1644,14 @@ simulated function Tick(float deltaTime)
    else
    {
       LockMode = LOCK_None;
-	  TargetMessage=msgNone;
-      MaintainLockTimer = 0;
+	  if (bLasing && (Emitter != None))
+	  {
+	  	  TargetRange = VSize(Owner.Location - Emitter.spot[0].Location);
+	  	  TargetMessage = msgLockRange @ Int(TargetRange / 16) @ msgRangeUnit;
+	  } else {
+		   TargetMessage=msgLockRange;
+	  }
+	  MaintainLockTimer = 0;
       LockTarget = None;
       LockTimer = 0;
    }
@@ -1320,44 +1661,108 @@ simulated function Tick(float deltaTime)
       PlayLockSound();
       SoundTimer = 0;
    }
+	// New Stuff!
+	// Because we now have an aimpoint vector
+	// We just use our baseaccuracy
+	//currentAccuracy = CalculateAccuracy();
 
-	currentAccuracy = CalculateAccuracy();
 
-	if (player != None)
+	currentShake = CalculateAccuracy() * 10;
+	aimAlpha = 0.15;
+	currentAccuracy = FClamp(
+		currentAccuracy * (1-aimAlpha)
+			+ aimAlpha * 6*FMax(Sqrt(CalculateAimEnergy()/shakeSpring), 0),
+		0,
+		2
+	);
+
+
+	// // reduce the recoil based on weaponSkill
+	// recoil = recoilStrength * Lerp(-GetWeaponSkill() / 0.7, 1, 0);
+	// //recoil=0;
+	// if (recoil < 0.0)
+		// recoil = 0.0;
+	// if (bFiring && (AnimSequence == 'Shoot')){
+		// //Owner.BroadcastMessage("weaponSkill: " $ GetWeaponSkill());
+	// }
+	// // simulate recoil while firing
+	if (bFiring && (recoilStrength > 0.0))
 	{
-		// reduce the recoil based on skill
-		recoil = recoilStrength + GetWeaponSkill() * 2.0;
-		if (recoil < 0.0)
-			recoil = 0.0;
-
-		// simulate recoil while firing
-		if (bFiring && IsAnimating() && (AnimSequence == 'Shoot') && (recoil > 0.0))
-		{
-			player.ViewRotation.Yaw += deltaTime * (Rand(4096) - 2048) * recoil;
-			player.ViewRotation.Pitch += deltaTime * (Rand(4096) + 4096) * recoil;
-			if ((player.ViewRotation.Pitch > 16384) && (player.ViewRotation.Pitch < 32768))
-				player.ViewRotation.Pitch = 16384;
-		}
+		//Owner.BroadcastMessage("CalculateAccuracy: " $ CalculateAccuracy());
+		//Owner.BroadcastMessage("CalculateAimEnergy: " $ CalculateAimEnergy());
+		recoilEffect = FClamp(recoilEffect + recoilStrength, 0, 1);
+		// New Stuff
+		AdjustAimRecoil(recoilStrength, deltaTime);
+		// if ((player.ViewRotation.Pitch > 16384) && (player.ViewRotation.Pitch < 32768))
+			// player.ViewRotation.Pitch = 16384;
 	}
+	// recoilEffect = FClamp(recoilEffect - deltaTime * 0.5, 0, 1);
+
 
 	// if were standing still, increase the timer
-	if (VSize(Owner.Velocity) < 10)
-		standingTimer += deltaTime;
+	if (VSize(Owner.Velocity) < -1)
+		// New Stuff!
+		//Was
+		//standingTimer += deltaTime;
+		// Is now
+		standingTimer = FMin(standingTimer + deltaTime, 10);
 	else	// otherwise, decrease it slowly based on velocity
 		standingTimer = FMax(0, standingTimer - 0.03*deltaTime*VSize(Owner.Velocity));
+	// New Stuff!
+
+	AdjustAimPassive();
+	if ( !bHandToHand ){
+		// Robots don't have these problems
+		if (Human(Owner) != None){
+			AdjustAimMove(VSize(Owner.Velocity));
+
+		}
+		CalculateAimDamp();
+		CalculateAimSpring();
+		currentYawRate -= (
+			shakeDamping * (currentYawRate)
+			+ shakeSpring * aimDeviation.Yaw
+		) * deltaTime;
+		currentPitchRate -= (
+			shakeDamping * (currentPitchRate)
+			+ shakeSpring * aimDeviation.Pitch
+		) * deltaTime;
+		aimActual.Yaw -= deltaTime * currentYawRate;
+		aimActual.Pitch -= deltaTime * currentPitchRate;
+		aimActual.Pitch += deltaTime * recoilSpeed;
+		player.ViewRotation.Pitch += deltaTime * recoilSpeed;
+		aimActual = Normalize(aimActual);
+		LimitAimWander();
+		aimDeviation.Yaw = Pawn(Owner).ViewRotation.Yaw - aimActual.Yaw;
+		aimDeviation.Pitch = Pawn(Owner).ViewRotation.Pitch - aimActual.Pitch;
+		aimDeviation = Normalize(aimDeviation);
+		AdjustAimTurn();
+		DissipateRecoil(deltaTime);
+	} else {
+		aimDeviation.Yaw = 0;
+		aimDeviation.Pitch = 0;
+		currentYawRate = 0;
+		currentPitchRate = 0;
+		aimActual.Yaw = Pawn(Owner).ViewRotation.Yaw;
+		aimActual.Pitch = Pawn(Owner).ViewRotation.Pitch;
+	}
+
+	// done with new stuff
+	// if (ScriptedPawn(Owner) != None){
+		// aimActual.Yaw = Pawn(Owner).ViewRotation.Yaw + 4096;
+		// aimActual.Pitch = Pawn(Owner).ViewRotation.Pitch + 4096;
+	// }
 
 	if (bLasing || bZoomed)
 	{
-		// shake our view to simulate poor aiming
-		if (ShakeTimer > 0.25)
+
+		if ((player != None) && bZoomed)
 		{
-			ShakeYaw = currentAccuracy * (Rand(4096) - 2048);
-			ShakePitch = currentAccuracy * (Rand(4096) - 2048);
-			ShakeTimer -= 0.25;
+			player.ViewRotation.Yaw -= deltaTime * currentYawRate;
+			player.ViewRotation.Pitch -= deltaTime * currentPitchRate;
+			aimActual.Yaw = player.ViewRotation.Yaw;
+			aimActual.Pitch = player.ViewRotation.Pitch;
 		}
-
-		ShakeTimer += deltaTime;
-
 		if (bLasing && (Emitter != None))
 		{
 			loc = Owner.Location;
@@ -1369,15 +1774,14 @@ simulated function Tick(float deltaTime)
 			rot.Pitch += Rand(5) - 2;
 
 			Emitter.SetLocation(loc);
-			Emitter.SetRotation(rot);
+			Emitter.SetRotation(aimActual);
+			//Emitter.SetRotation(rot);
 		}
+		}
+		lastViewRotation = pawn.ViewRotation;
+		lastViewRotationRate.Pitch = viewPitchRate;
+		lastViewRotationRate.Yaw = viewYawRate;
 
-		if ((player != None) && bZoomed)
-		{
-			player.ViewRotation.Yaw += deltaTime * ShakeYaw;
-			player.ViewRotation.Pitch += deltaTime * ShakePitch;
-		}
-	}
 }
 
 //
@@ -2357,7 +2761,9 @@ simulated function Projectile ProjectileFire(class<projectile> ProjClass, float 
 		numProj = DeusExAmmo(AmmoType).numSlugs;
 	}
 
-	GetAxes(Pawn(owner).ViewRotation,X,Y,Z);
+	// New Stuff!!!
+	//GetAxes(Pawn(owner).ViewRotation,X,Y,Z);
+	GetAxes(aimActual, X,Y,Z);
 	Start = ComputeProjectileStart(X, Y, Z);
 
 	for (i=0; i<numProj; i++)
@@ -2366,10 +2772,20 @@ simulated function Projectile ProjectileFire(class<projectile> ProjClass, float 
       if ((i > 0) && (Level.NetMode != NM_Standalone))
          if (currentAccuracy < MinProjSpreadAcc)
             currentAccuracy = MinProjSpreadAcc;
-         
-		AdjustedAim = pawn(owner).AdjustAim(ProjSpeed, Start, AimError, True, bWarn);
-		AdjustedAim.Yaw += currentAccuracy * (Rand(1024) - 512);
-		AdjustedAim.Pitch += currentAccuracy * (Rand(1024) - 512);
+        // New Stuff!
+		//AdjustedAim = pawn(owner).AdjustAim(ProjSpeed, Start, AimError, True, bWarn);
+		//AdjustedAim = pawn(owner).AdjustAim(1.0, Start, AimError, True, bWarn);
+		if (bHandToHand) {
+			handToHandMiss = CalculateHandToHandProjectileAccuracy();
+			AdjustedAim = Pawn(Owner).ViewRotation;
+			AdjustedAim.Yaw += handToHandMiss * (Rand(512) - 256);
+			AdjustedAim.Pitch += handToHandMiss * (Rand(512) - 256);
+		} else {
+			AdjustedAim = aimActual;
+			AdjustedAim.Yaw += BaseAccuracy * DeusExAmmo(AmmoType).fSpreadMult * (Rand(512) - 256);
+			AdjustedAim.Pitch += BaseAccuracy * DeusExAmmo(AmmoType).fSpreadMult * (Rand(512) - 256);
+		}
+
 
 
 		if (( Level.NetMode == NM_Standalone ) || ( Owner.IsA('DeusExPlayer') && DeusExPlayer(Owner).PlayerIsListenClient()) )
@@ -2461,18 +2877,13 @@ simulated function TraceFire( float Accuracy )
 			Owner.AISendEvent('Distress', EAITYPE_Audio, volume, radius);
 	}
 
-	GetAxes(Pawn(owner).ViewRotation,X,Y,Z);
+	// New Stuff!
+	//GetAxes(Pawn(owner).ViewRotation,X,Y,Z);
+	GetAxes(aimActual, X, Y, Z);
 	StartTrace = ComputeProjectileStart(X, Y, Z);
 	AdjustedAim = pawn(owner).AdjustAim(1000000, StartTrace, 2.75*AimError, False, False);
-
-	// if there is a scope, but the player isn't using it, decrease the accuracy
-	// so there is an advantage to using the scope
-	if (bHasScope && !bZoomed)
-		Accuracy += 0.2;
-	// if the laser sight is on, make this shot dead on
-	// also, if the scope is on, zero the accuracy so the shake makes the shot inaccurate
-	else if (bLasing || bZoomed)
-		Accuracy = 0.0;
+	AdjustedAim.Pitch -= aimDeviation.Pitch;
+	AdjustedAim.Yaw -= aimDeviation.Yaw;
 	if (numSlugsOverride > 0){
 		numSlugs = numSlugsOverride;
 	} else {
@@ -3950,6 +4361,11 @@ defaultproperties
      bNoSmooth=False
      Mass=10.000000
      Buoyancy=5.000000
+		 pCorrectAim=150.0
+		 dCorrectAim=0.2
+		 wobbleTimeLimit=200.0
 		 fFireAnimFactor=1.0
+		 handleAbility=1.0
+		 aimAbility=1.0
 		 numSlugsOverride=0
 }
