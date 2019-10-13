@@ -521,12 +521,13 @@ simulated function float GetWeaponSkill()
 {
 	local DeusExPlayer player;
 	local float value;
-
+	local ScriptedPawn pawn;
 	value = 0;
 
 	if ( Owner != None )
 	{
 		player = DeusExPlayer(Owner);
+		pawn = ScriptedPawn(Owner);
 		if (player != None)
 		{
 			if ((player.AugmentationSystem != None ) && ( player.SkillSystem != None ))
@@ -540,6 +541,27 @@ simulated function float GetWeaponSkill()
 				value += player.SkillSystem.GetSkillLevelValue(GoverningSkill);
 			}
 		}
+		// New Stuff!!!
+		else if (Robot(Owner) != None){
+			value = -0.0;
+		}
+		else if (pawn != None) {
+			//CloseCombatMult
+			value = -0.2 + pawn.BaseAccuracy;
+			if (pawn.bCanStrafe){
+				value -= 0.05;
+			}
+			if (pawn.bAimForHead){
+				value -= 0.05;
+			}
+			if (pawn.bAvoidAim){
+				value -= 0.05;
+			}
+			//value -= pawn.CloseCombatMult * 0.5;
+		}
+	}
+	return FClamp(value, -0.8, 0.0);
+}
 	}
 	return value;
 }
