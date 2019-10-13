@@ -325,6 +325,11 @@ function Frob(Actor Frobber, Inventory frobWith)
 	local POVCorpse corpse;
 	local DeusExPickup invItem;
 	local int itemCount;
+	local int i;
+	local int ammoTypeCount;
+	local ammo altAmmo;
+	local int pickupAltAmmoCount;
+	local int pickupAltAmmoIndex;
 
 //log("DeusExCarcass::Frob()--------------------------------");
 
@@ -398,7 +403,7 @@ function Frob(Actor Frobber, Inventory frobWith)
 
 				bPickedItemUp = False;
 
-				if (item.IsA('Ammo'))
+				if (item.IsA('Ammo') && DeusExAmmo(item).bPawnOwner)
 				{
 					// Only let the player pick up ammo that's already in a weapon
 					DeleteInventory(item);
@@ -419,7 +424,7 @@ function Frob(Actor Frobber, Inventory frobWith)
                   W.IsA('WeaponLAM'))
                   W.PickupAmmoCount = 1;
                else if (Level.NetMode == NM_Standalone)
-                  W.PickupAmmoCount = Rand(4) + 1;
+                  W.PickupAmmoCount = 1 + Rand(W.PickupAmmoCount - 1);
 				}
 				
 				if (item != None)
