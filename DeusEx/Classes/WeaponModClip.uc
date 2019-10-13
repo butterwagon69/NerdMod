@@ -43,7 +43,7 @@ simulated function bool CanUpgradeWeapon(DeusExWeapon weapon)
 
 defaultproperties
 {
-     WeaponModifier=0.100000
+     WeaponModifier=0.200000
      ItemName="Weapon Modification (Clip)"
      Icon=Texture'DeusExUI.Icons.BeltIconWeaponModClip'
      largeIcon=Texture'DeusExUI.Icons.LargeIconWeaponModClip'

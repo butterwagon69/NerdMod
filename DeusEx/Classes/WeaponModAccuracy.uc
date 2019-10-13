@@ -38,7 +38,7 @@ simulated function bool CanUpgradeWeapon(DeusExWeapon weapon)
 
 defaultproperties
 {
-     WeaponModifier=0.100000
+     WeaponModifier=0.150000
      ItemName="Weapon Modification (Accuracy)"
      Icon=Texture'DeusExUI.Icons.BeltIconWeaponModAccuracy'
      largeIcon=Texture'DeusExUI.Icons.LargeIconWeaponModAccuracy'
