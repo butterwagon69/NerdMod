@@ -78,7 +78,7 @@ function bool UseAmmo(int AmountNeeded)
 
 		if (shell != None)
 		{
-			shell.Velocity = (FRand()*20+90) * Y + (10-FRand()*20) * X;
+			shell.Velocity = (FRand()*200+90) * Y + (10-FRand()*200) * X;
 			shell.Velocity.Z = 0;
 		}
 		return True;

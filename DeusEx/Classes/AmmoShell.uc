@@ -31,36 +31,39 @@ simulated function bool SimUseAmmo()
 	}
 	return False;
 }
-
+// I have no clue why the devs decided to redefine the useammo function
+// in every ammo type. I don't feel like finding out right now.
 function bool UseAmmo(int AmountNeeded)
 {
 	local vector offset, tempvec, X, Y, Z;
 	local ShellCasing2 shell;
-
+	local int i;
 	if (Super.UseAmmo(AmountNeeded))
 	{
 		GetAxes(Pawn(Owner).ViewRotation, X, Y, Z);
 		offset = Owner.CollisionRadius * X + 0.3 * Owner.CollisionRadius * Y;
 		tempvec = 0.8 * Owner.CollisionHeight * Z;
 		offset.Z += tempvec.Z;
-      if ( DeusExMPGame(Level.Game) != None )
-      {
-			if ( Level.NetMode == NM_ListenServer )
+		for (i = 0; i < AmountNeeded; i++){
+			if ( DeusExMPGame(Level.Game) != None )
 			{
-	         shell = spawn(class'ShellCasing2',,, Owner.Location + offset);
-				shell.RemoteRole = ROLE_None;
+				if ( Level.NetMode == NM_ListenServer )
+				{
+				 shell = spawn(class'ShellCasing2',,, Owner.Location + offset);
+					shell.RemoteRole = ROLE_None;
+				}
+				else
+				 shell = None;
 			}
 			else
-	         shell = None;
-      }
-      else
-      {
-         shell = spawn(class'ShellCasing2',,, Owner.Location + offset);
-      }
-		if (shell != None)
-		{
-			shell.Velocity = (FRand()*20+90) * Y + (10-FRand()*20) * X;
-			shell.Velocity.Z = 0;
+			{
+			 shell = spawn(class'ShellCasing2',,, Owner.Location + offset);
+			}
+			if (shell != None)
+			{
+				shell.Velocity = (FRand()*200+90) * Y + (10-FRand()*200) * X;
+				shell.Velocity.Z = 0;
+			}
 		}
 		return True;
 	}
