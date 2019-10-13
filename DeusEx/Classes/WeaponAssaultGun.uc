@@ -4,6 +4,8 @@
 class WeaponAssaultGun extends DeusExWeapon;
 
 var float	mpRecoilStrength;
+var int ammoLoadedIndex;
+
 
 simulated function PreBeginPlay()
 {
@@ -24,6 +26,42 @@ simulated function PreBeginPlay()
 	}
 }
 
+function bool LoadAmmo(int ammoNum){
+	local bool result;
+	local float reloadDiff;
+	local int numReloadMods;
+	local int i;
+	result = super.LoadAmmo(ammoNum);
+	if (result)
+	{
+		if (ammoNum == 0)
+		{
+			ammoLoadedIndex = 0;
+			numReloadMods = int(ModReloadCount / Class'WeaponModClip'.default.WeaponModifier);
+			// Replicating code from WeaponModClip because I am a big dummy
+
+			reloadDiff = Default.ReloadCount * Class'WeaponModClip'.default.WeaponModifier;
+			if (reloadDiff < 1)
+				reloadDiff = 1;
+			ReloadCount = Default.ReloadCount + int(reloadDiff * numReloadMods);
+			LowAmmoWaterMark = Default.LowAmmoWaterMark;
+			scopeFOV = Default.scopeFOV;
+		}
+		else if (ammoNum == 1)
+		{
+			ammoLoadedIndex = 1;
+			ammoConsumption = 1;
+			ReloadCount = 1;
+			LowAmmoWaterMark = 4;
+			scopeFOV = 70;
+		}
+	}
+	return result;
+}
+
+
+
+
 defaultproperties
 {
      LowAmmoWaterMark=30
@@ -33,14 +71,14 @@ defaultproperties
      bAutomatic=True
      ShotTime=0.100000
      reloadTime=3.000000
-     HitDamage=3
-     BaseAccuracy=0.700000
+     HitDamage=4
+     BaseAccuracy=0.100000
      bCanHaveLaser=True
      bCanHaveSilencer=True
      AmmoNames(0)=Class'DeusEx.Ammo762mm'
      AmmoNames(1)=Class'DeusEx.Ammo20mm'
      ProjectileNames(1)=Class'DeusEx.HECannister20mm'
-     recoilStrength=0.500000
+     recoilStrength=3.0000
      MinWeaponAcc=0.200000
      mpReloadTime=0.500000
      mpHitDamage=9
@@ -60,6 +98,7 @@ defaultproperties
      FireOffset=(X=-16.000000,Y=5.000000,Z=11.500000)
      shakemag=200.000000
      FireSound=Sound'DeusExSounds.Weapons.AssaultGunFire'
+	 //FireSound=Sound'DeusExSounds.Weapons.HideAGunFire'
      AltFireSound=Sound'DeusExSounds.Weapons.AssaultGunReloadEnd'
      CockingSound=Sound'DeusExSounds.Weapons.AssaultGunReload'
      SelectSound=Sound'DeusExSounds.Weapons.AssaultGunSelect'
@@ -84,4 +123,10 @@ defaultproperties
      CollisionHeight=1.100000
      Mass=30.000000
 		 fFireAnimFactor=5.0
+		 handleAbility=1.5
+		 aimAbility=1.5
+		 AIFireDelay=0.0
+		 bCanHaveScope=True
+		 ScopeFOV=45
+		 bCanShootFaster=False
 }
