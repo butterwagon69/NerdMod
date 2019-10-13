@@ -14,6 +14,7 @@ var int MPMaxAmmo; //Max Ammo in multiplayer.
 var() int numSlugs;
 var() int HitDamageSpecial; //If this is special ammo give it special damage else 0
 var name damageType;
+var float fSpreadMult; // Scales the spread of the parent weapon
 var() int dropRate; // If special ammo, how rarely does this "drop" on corpses - 0 = Never; 100 = Always
 
 // ----------------------------------------------------------------------
@@ -81,5 +82,6 @@ defaultproperties
 	 numSlugs=1
 	 damageType='Shot'
 	 HitDamageSpecial=0
+	 fSpreadMult=1.0
 	 dropRate=0
 }
