@@ -979,6 +979,7 @@ simulated function float CalculateHandToHandProjectileAccuracy(){
 	return 4 * Lerp(- FClamp(weaponSkill, -limit, 0) / limit, 1, 0);
 }
 
+
 //
 // functions to change ammo types
 //
@@ -987,6 +988,7 @@ function bool LoadAmmo(int ammoNum)
 	local class<Ammo> newAmmoClass;
 	local Ammo newAmmo;
 	local Pawn P;
+	local DeusExProjectile dxProj;
 
 	if ((ammoNum < 0) || (ammoNum > 2))
 		return False;
@@ -1009,7 +1011,7 @@ function bool LoadAmmo(int ammoNum)
 				P.ClientMessage(Sprintf(msgOutOf, newAmmoClass.Default.ItemName));
 				return False;
 			}
-			
+
 			// if we don't have a projectile for this ammo type, then set instant hit
 			if (ProjectileNames[ammoNum] == None)
 			{
@@ -1037,15 +1039,7 @@ function bool LoadAmmo(int ammoNum)
 			{
 				// otherwise, set us to fire projectiles
 				bInstantHit = False;
-				bAutomatic = False;
-				ShotTime = 1.0;
-				if (HasReloadMod())
-					ReloadTime = 2.0 * (1.0+ModReloadTime);
-				else
-					ReloadTime = 2.0;
-				FireSound = None;		// handled by the projectile
-				ProjectileClass = ProjectileNames[ammoNum];
-				ProjectileSpeed = ProjectileClass.Default.Speed;
+				SetAltProjectileParams(ammoNum);
 			}
 
 			AmmoName = newAmmoClass;
@@ -1080,6 +1074,21 @@ function bool LoadAmmo(int ammoNum)
 
 	return False;
 }
+
+
+simulated function SetAltProjectileParams(int ammoNum){
+	bAutomatic = False;
+	ShotTime = 1.0;
+	if (HasReloadMod())
+		ReloadTime = 2.0 * (1.0+ModReloadTime);
+	else
+		ReloadTime = 2.0;
+	FireSound = None;		// handled by the projectile
+	ProjectileClass = ProjectileNames[ammoNum];
+	ProjectileSpeed = ProjectileClass.Default.Speed * GetDamageMult();
+	bProjectileGravity = !(class<DeusExProjectile>(ProjectileClass).Default.bIgnoresGravity);
+}
+
 
 // ----------------------------------------------------------------------
 //
@@ -1134,7 +1143,7 @@ simulated function bool CanLoadAmmoType(Ammo ammo)
 
 // ----------------------------------------------------------------------
 // LoadAmmoType()
-// 
+//
 // Load this ammo type given the actual object
 // ----------------------------------------------------------------------
 
@@ -1150,7 +1159,7 @@ function LoadAmmoType(Ammo ammo)
 
 // ----------------------------------------------------------------------
 // LoadAmmoClass()
-// 
+//
 // Load this ammo type given the class
 // ----------------------------------------------------------------------
 
@@ -1382,7 +1391,7 @@ function PlaceGrenade()
 	gren = ThrownProjectile(spawn(ProjectileClass, Owner,, placeLocation, Rotator(placeNormal)));
 	if (gren != None)
 	{
-		AmmoType.UseAmmo(1);
+		AmmoType.UseAmmo(ammoConsumption);
 		if ( AmmoType.AmmoAmount <= 0 )
 			bDestroyOnFinish = True;
 
@@ -1395,10 +1404,10 @@ function PlaceGrenade()
 		if (placeMover != None)
 			gren.SetBase(placeMover);
 
-		// up the damage based on the skill
+		// up the damage based on the weaponSkill
 		// returned value from GetWeaponSkill is negative, so negate it to make it positive
-		// dmgX value ranges from 1.0 to 2.4 (max demo skill and max target aug)
-		dmgX = -2.0 * GetWeaponSkill() + 1.0;
+		// dmgX value ranges from 1.0 to 2.4 (max demo weaponSkill and max target aug)
+		dmgX = -2.0 * weaponSkill + 1.0;
 		gren.Damage *= dmgX;
 
 		// Update ammo count on object belt
@@ -1838,6 +1847,7 @@ simulated function RefreshScopeDisplay(DeusExPlayer player, bool bInstant, bool 
    {
       DeusExrootWindow(player.rootWindow).scopeView.DeactivateView();
    }
+				ProjectileSpeed = ProjectileClass.Default.Speed * GetDamageMult();
 }
 
 //
@@ -2101,7 +2111,7 @@ simulated function bool ClientFire( float value )
 {
 	local bool bWaitOnAnim;
 	local vector shake;
-
+	local int i;
 	// check for surrounding environment
 	if ((EnviroEffective == ENVEFF_Air) || (EnviroEffective == ENVEFF_Vacuum) || (EnviroEffective == ENVEFF_AirVacuum))
 	{
@@ -2152,14 +2162,17 @@ simulated function bool ClientFire( float value )
 		PlaySelectiveFiring();
 		PlayFiringSound();
 	}
-	else if ((ClipCount < ReloadCount) || (ReloadCount == 0))
+	else if ((ClipCount <= (ReloadCount - ammoConsumption)) || (ReloadCount == 0))
 	{
 		if ((ReloadCount == 0) || (AmmoType.AmmoAmount > 0))
 		{
-			SimClipCount = ClipCount + 1;
+			SimClipCount = ClipCount + ammoConsumption;
 
 			if ( AmmoType != None )
-				AmmoType.SimUseAmmo();
+				for (i = 0; i < ammoConsumption; i++){
+					AmmoType.SimUseAmmo();
+				}
+
 
 			bFiring = True;
 			bPointing = True;
@@ -2270,7 +2283,7 @@ function Fire(float Value)
 	if (bHandToHand)
 	{
 		if (ReloadCount > 0)
-			AmmoType.UseAmmo(1);
+			AmmoType.UseAmmo(ammoConsumption);
 
 		if (( Level.NetMode != NM_Standalone ) && !bListenClient )
 			bClientReady = False;
@@ -2283,14 +2296,15 @@ function Fire(float Value)
 		PlayFiringSound();
 	}
 	// if we are a single-use weapon, then our ReloadCount is 0 and we don't use ammo
-	else if ((ClipCount < ReloadCount) || (ReloadCount == 0))
+	else if ((ClipCount <= (ReloadCount - ammoConsumption)) || (ReloadCount == 0))
 	{
-		if ((ReloadCount == 0) || AmmoType.UseAmmo(1))
+		if ((ReloadCount == 0) || AmmoType.UseAmmo(ammoConsumption))
 		{
 			if (( Level.NetMode != NM_Standalone ) && !bListenClient )
 				bClientReady = False;
 
-			ClipCount++;
+			TakeRecoilImpulse();
+			ClipCount+= ammoConsumption;
 			bFiring = True;
 			bReadyToFire = False;
 			GotoState('NormalFire');
@@ -2341,8 +2355,29 @@ function ReadyToFire()
 function PlayPostSelect()
 {
 	// let's not zero the ammo count anymore - you must always reload
-//	ClipCount = 0;		
+//	ClipCount = 0;
 }
+
+simulated function float GetAnimSpeed()
+{
+	local float mult;
+	if (ScriptedPawn(Owner) != None)
+		return (1.0 - 2.0*weaponSkill);
+	else
+	{
+		// AugCombat decreases shot time
+		mult = 1.0;
+		if (bHandToHand && DeusExPlayer(Owner) != None)
+		{
+			mult = DeusExPlayer(Owner).AugmentationSystem.GetAugLevelValue(class'AugCombat');
+			if (mult == -1.0)
+				mult = 1.0;
+		}
+		mult = Lerp(mult - 1.0, 1.0, 2.0);
+		return mult * (1.0 - 2.0*weaponSkill);
+	}
+}
+
 
 simulated function PlaySelectiveFiring()
 {
@@ -2391,7 +2426,7 @@ simulated function PlayFiringSound()
 	else
 	{
 		// The sniper rifle sound is heard to it's range in multiplayer
-		if ( ( Level.NetMode != NM_Standalone ) &&  Self.IsA('WeaponRifle') )	
+		if ( ( Level.NetMode != NM_Standalone ) &&  Self.IsA('WeaponRifle') )
 			PlaySimSound( FireSound, SLOT_None, TransientSoundVolume, class'WeaponRifle'.Default.mpMaxRange );
 		else
 			PlaySimSound( FireSound, SLOT_None, TransientSoundVolume, 2048 );
@@ -2470,7 +2505,7 @@ simulated function SelectiveSpawnEffects( Vector HitLocation, Vector HitNormal, 
 
 //
 //	 SpawnEffectSounds - Plays the sound for the effect owner immediately, the server will play them for the other players
-//	
+//
 simulated function SpawnEffectSounds( Vector HitLocation, Vector HitNormal, Actor Other, float Damage )
 {
 	if (bHandToHand)
@@ -2562,19 +2597,22 @@ function name GetWallMaterial(vector HitLocation, vector HitNormal)
 
 simulated function SimGenerateBullet()
 {
+	local int i;
 	if ( Role < ROLE_Authority )
 	{
-		if ((ClipCount < ReloadCount) && (ReloadCount != 0))
+		if ((ClipCount <= (ReloadCount - ammoConsumption)) && (ReloadCount != 0))
 		{
 			if ( AmmoType != None )
-				AmmoType.SimUseAmmo();
+				for (i = 0; i < ammoConsumption; i++){
+					AmmoType.SimUseAmmo();
+				}
+
 
 			if ( bInstantHit )
 				TraceFire(currentAccuracy);
 			else
 				ProjectileFire(ProjectileClass, ProjectileSpeed, bWarnTarget);
-
-			SimClipCount++;
+			SimClipCount+= ammoConsumption;
 
 			if ( !Self.IsA('WeaponFlamethrower') )
 				ServerGenerateBullet();
@@ -2601,13 +2639,13 @@ function ServerDoneReloading()
 
 function ServerGenerateBullet()
 {
-	if ( ClipCount < ReloadCount )
+	if ( ClipCount <= (ReloadCount - ammoConsumption))
 		GenerateBullet();
 }
 
 function GenerateBullet()
 {
-	if (AmmoType.UseAmmo(1))
+	if (AmmoType.UseAmmo(ammoConsumption))
 	{
 		if ( bInstantHit )
 			TraceFire(currentAccuracy);
@@ -2709,7 +2747,7 @@ function GetAIVolume(out float volume, out float radius)
 	if (!bHasSilencer && !bHandToHand)
 	{
 		volume = NoiseLevel*Pawn(Owner).SoundDampening;
-		radius = volume * 800.0;
+		radius = volume * 2400.0;
 	}
 }
 
@@ -2725,20 +2763,10 @@ simulated function Projectile ProjectileFire(class<projectile> ProjClass, float 
 	local float volume, radius;
 	local int i, numProj;
 	local Pawn aPawn;
+	local float handToHandMiss;
 
 	// AugCombat increases our speed (distance) if hand to hand
-	mult = 1.0;
-	if (bHandToHand && (DeusExPlayer(Owner) != None))
-	{
-		mult = DeusExPlayer(Owner).AugmentationSystem.GetAugLevelValue(class'AugCombat');
-		if (mult == -1.0)
-			mult = 1.0;
-		ProjSpeed *= mult;
-	}
-
-	// skill also affects our damage
-	// GetWeaponSkill returns 0.0 to -0.7 (max skill/aug)
-	mult += -2.0 * GetWeaponSkill();
+	mult = GetDamageMult();
 
 	// make noise if we are not silenced
 	if (!bHasSilencer && !bHandToHand)
@@ -2751,10 +2779,6 @@ simulated function Projectile ProjectileFire(class<projectile> ProjClass, float 
 	}
 
 	// should we shoot multiple projectiles in a spread?
-	if (AreaOfEffect == AOE_Cone)
-		numProj = 3;
-	else
-		numProj = 1;
 	if (numSlugsOverride > 0){
 		numProj = numSlugsOverride;
 	} else {
@@ -2785,6 +2809,7 @@ simulated function Projectile ProjectileFire(class<projectile> ProjClass, float 
 			AdjustedAim.Yaw += BaseAccuracy * DeusExAmmo(AmmoType).fSpreadMult * (Rand(512) - 256);
 			AdjustedAim.Pitch += BaseAccuracy * DeusExAmmo(AmmoType).fSpreadMult * (Rand(512) - 256);
 		}
+
 
 
 
@@ -2850,9 +2875,16 @@ simulated function Projectile ProjectileFire(class<projectile> ProjClass, float 
 				}
 			}
 		}
+		// Owner.BroadcastMessage("Default Range: " $ float(Default.AccurateRange));
+		// Owner.BroadcastMessage("Current Range: " $ float(AccurateRange));
+		// Owner.BroadcastMessage("Mult: " $ mult);
+		proj.setSpeed(proj.Default.Speed * mult);
+		// Owner.BroadcastMessage("Speed: " $ proj.Speed);
 
 	}
+
 	return proj;
+
 }
 
 //
@@ -2866,7 +2898,7 @@ simulated function TraceFire( float Accuracy )
 	local float dist, alpha, degrade;
 	local int i, numSlugs;
 	local float volume, radius;
-
+	// Owner.BroadcastMessage("TraceFire");
 	// make noise if we are not silenced
 	if (!bHasSilencer && !bHandToHand)
 	{
@@ -2876,7 +2908,6 @@ simulated function TraceFire( float Accuracy )
 		if (!Owner.IsA('PlayerPawn'))
 			Owner.AISendEvent('Distress', EAITYPE_Audio, volume, radius);
 	}
-
 	// New Stuff!
 	//GetAxes(Pawn(owner).ViewRotation,X,Y,Z);
 	GetAxes(aimActual, X, Y, Z);
@@ -2900,11 +2931,13 @@ simulated function TraceFire( float Accuracy )
 	if (numSlugs > 1)
 	{
 		Accuracy *= float(Default.AccurateRange) / float(AccurateRange);
+		BroadcastMessage("Accuracy: " $ Accuracy);
 	}
 
 
 	for (i=0; i<numSlugs; i++)
 	{
+		// Owner.BroadcastMessage("I:" $ i);
       // If we have multiple slugs, then lower our accuracy a bit after the first slug so the slugs DON'T all go to the same place
       if ((i > 0) && (Level.NetMode != NM_Standalone) && !(bHandToHand))
          if (Accuracy < MinSpreadAcc)
@@ -2919,17 +2952,17 @@ simulated function TraceFire( float Accuracy )
 
       EndTrace = StartTrace + Accuracy * (FRand()-0.5)*Y*1000 + Accuracy * (FRand()-0.5)*Z*1000 ;
       EndTrace += (FMax(1024.0, MaxRange) * vector(AdjustedAim));
-      
+
       Other = Pawn(Owner).TraceShot(HitLocation,HitNormal,EndTrace,StartTrace);
 
 		// randomly draw a tracer for relevant ammo types
 		// don't draw tracers if we're zoomed in with a scope - looks stupid
       // DEUS_EX AMSD In multiplayer, draw tracers all the time.
-		if ( ((Level.NetMode == NM_Standalone) && (!bZoomed && (numSlugs == 1) && (FRand() < 0.5))) ||
-           ((Level.NetMode != NM_Standalone) && (Role == ROLE_Authority) && (numSlugs == 1)) )
+	  // New Stuff!!!
+		if ( ((Level.NetMode == NM_Standalone) && (!bZoomed )) ||
+           ((Level.NetMode != NM_Standalone) && (Role == ROLE_Authority)) )
 		{
-			if ((AmmoName == Class'Ammo10mm') || (AmmoName == Class'Ammo3006') ||
-				(AmmoName == Class'Ammo762mm'))
+			if (bInstantHit && (!bHandToHand))
 			{
 				if (VSize(HitLocation - StartTrace) > 250)
 				{
@@ -2975,6 +3008,8 @@ simulated function int GetHitDamage(){
 		return HitDamage;
 	}
 }
+
+
 simulated function ProcessTraceHit(Actor Other, Vector HitLocation, Vector HitNormal, Vector X, Vector Y, Vector Z)
 {
 	local float        mult;
@@ -2986,17 +3021,11 @@ simulated function ProcessTraceHit(Actor Other, Vector HitLocation, Vector HitNo
 	if (Other != None)
 	{
 		// AugCombat increases our damage if hand to hand
-		mult = 1.0;
-		if (bHandToHand && (DeusExPlayer(Owner) != None))
-		{
-			mult = DeusExPlayer(Owner).AugmentationSystem.GetAugLevelValue(class'AugCombat');
-			if (mult == -1.0)
-				mult = 1.0;
-		}
+		mult = GetDamageMult();
 
-		// skill also affects our damage
-		// GetWeaponSkill returns 0.0 to -0.7 (max skill/aug)
-		mult += -2.0 * GetWeaponSkill();
+		// weaponSkill also affects our damage
+		// GetWeaponSkill returns 0.0 to -0.7 (max weaponSkill/aug)
+
 
 		// Determine damage type
 		damageType = WeaponDamageType();
@@ -3101,7 +3130,7 @@ function Finish()
 {
 	if ( Level.NetMode != NM_Standalone )
 		ReadyClientToFire( True );
-	
+
 	if (bHasMuzzleFlash)
 		EraseMuzzleFlashTexture();
 
@@ -3134,8 +3163,8 @@ function Finish()
 		else if ( (Pawn(Owner).bFire != 0) && (FRand() < RefireRate) )
 			Global.Fire(0);
 		else if ( (Pawn(Owner).bAltFire != 0) && (FRand() < AltRefireRate) )
-			Global.AltFire(0);	
-		else 
+			Global.AltFire(0);
+		else
 		{
 			Pawn(Owner).StopFiring();
 			GotoState('Idle');
@@ -3155,7 +3184,7 @@ function Finish()
 		Global.Fire(0);
 	else if ( /*bAltFireMem ||*/ Pawn(Owner).bAltFire!=0 )
 		Global.AltFire(0);
-	else 
+	else
 		GotoState('Idle');
 }
 
@@ -3189,14 +3218,14 @@ simulated function bool UpdateInfo(Object winObject)
 	winInfo.AddLine();
 
 	// Create the ammo buttons.  Start with the AmmoNames[] array,
-	// which is used for weapons that can use more than one 
+	// which is used for weapons that can use more than one
 	// type of ammo.
 
 	if (AmmoNames[0] != None)
 	{
 		for (i=0; i<ArrayCount(AmmoNames); i++)
 		{
-			if (AmmoNames[i] != None) 
+			if (AmmoNames[i] != None)
 			{
 				// Check to make sure the player has this ammo type
 				// *and* that the ammo isn't empty
@@ -3226,10 +3255,10 @@ simulated function bool UpdateInfo(Object winObject)
 	}
 	else
 	{
-		// Now peer at the AmmoName variable, but only if the AmmoNames[] 
+		// Now peer at the AmmoName variable, but only if the AmmoNames[]
 		// array is empty
 		if ((AmmoName != class'AmmoNone') && (!bHandToHand) && (ReloadCount != 0))
-		{	
+		{
 			weaponAmmo = Ammo(P.FindInventoryType(AmmoName));
 
 			if (weaponAmmo != None)
@@ -3252,7 +3281,7 @@ simulated function bool UpdateInfo(Object winObject)
 
 	// Only draw another line if we actually displayed ammo.
 	if (bAmmoAvailable)
-		winInfo.AddLine();	
+		winInfo.AddLine();
 
 	// Ammo loaded
 	if ((AmmoName != class'AmmoNone') && (!bHandToHand) && (ReloadCount != 0))
@@ -3270,6 +3299,7 @@ simulated function bool UpdateInfo(Object winObject)
 	winInfo.AddAmmoTypesItem(msgInfoAmmo, str);
 
 	// base damage
+	// Fix this later!!!
 	if (AreaOfEffect == AOE_Cone)
 	{
 		if (bInstantHit)
@@ -3296,7 +3326,7 @@ simulated function bool UpdateInfo(Object winObject)
 	}
 
 	str = String(dmg);
-	mod = 1.0 - GetWeaponSkill();
+	mod = GetDamageMult();
 	if (mod != 1.0)
 	{
 		str = str @ BuildPercentString(mod - 1.0);
@@ -3366,14 +3396,14 @@ simulated function bool UpdateInfo(Object winObject)
 		str = str @ BuildPercentString(ModRecoilStrength);
 		str = str @ "=" @ FormatFloatString(recoilStrength, 0.01);
 	}
-
+	str = str @ "Newton Seconds";
 	winInfo.AddInfoItem(msgInfoRecoil, str, HasRecoilMod());
 
 	// base accuracy (2.0 = 0%, 0.0 = 100%)
 	if ( Level.NetMode != NM_Standalone )
 	{
 		str = Int((2.0 - Default.mpBaseAccuracy)*50.0) $ "%";
-		mod = (Default.mpBaseAccuracy - (BaseAccuracy + GetWeaponSkill())) * 0.5;
+		mod = (Default.mpBaseAccuracy - (BaseAccuracy + weaponSkill)) * 0.5;
 		if (mod != 0.0)
 		{
 			str = str @ BuildPercentString(mod);
@@ -3382,13 +3412,14 @@ simulated function bool UpdateInfo(Object winObject)
 	}
 	else
 	{
-		str = Int((2.0 - Default.BaseAccuracy)*50.0) $ "%";
-		mod = (Default.BaseAccuracy - (BaseAccuracy + GetWeaponSkill())) * 0.5;
-		if (mod != 0.0)
-		{
-			str = str @ BuildPercentString(mod);
-			str = str @ "=" @ Min(100, Int(100.0*mod+(2.0 - Default.BaseAccuracy)*50.0)) $ "%";
-		}
+		// str = Int((2.0 - Default.BaseAccuracy)*50.0) $ "%";
+		// mod = (Default.BaseAccuracy - (BaseAccuracy + weaponSkill)) * 0.5;
+		// if (mod != 0.0)
+		// {
+			// str = str @ BuildPercentString(mod);
+			// str = str @ "=" @ Min(100, Int(100.0*mod+(2.0 - Default.BaseAccuracy)*50.0)) $ "%";
+		// }
+		str = GetMOAVal();
 	}
 	winInfo.AddInfoItem(msgInfoAccuracy, str, (mod != 0.0));
 
@@ -3467,7 +3498,7 @@ simulated function bool UpdateInfo(Object winObject)
 	}
 	winInfo.AddInfoItem(msgInfoSilencer, str, bCanHaveSilencer && bHasSilencer && (Default.bHasSilencer != bHasSilencer));
 
-	// Governing Skill
+	// Governing weaponSkill
 	winInfo.AddInfoItem(msgInfoSkill, GoverningSkill.default.SkillName);
 
 	winInfo.AddLine();
@@ -3600,7 +3631,7 @@ simulated function bool HasClipMod()
 
 simulated function bool HasMaxClipMod()
 {
-	return (ModReloadCount == 0.5);
+	return (ModReloadCount == 1.0);
 }
 
 // ----------------------------------------------------------------------
@@ -3636,7 +3667,7 @@ simulated function bool HasAccuracyMod()
 
 simulated function bool HasMaxAccuracyMod()
 {
-	return (ModBaseAccuracy == 0.5);
+	return (ModBaseAccuracy == 0.75);
 }
 
 // ----------------------------------------------------------------------
@@ -3696,10 +3727,10 @@ state NormalFire
 			{
 				if (PlayerPawn(Owner) != None)
 					Global.Fire(0);
-				else 
+				else
 					GotoState('FinishFire');
 			}
-			else 
+			else
 				GotoState('FinishFire');
 		}
 		else
@@ -3719,13 +3750,13 @@ state NormalFire
 		{
 			// AugCombat decreases shot time
 			mult = 1.0;
-			if (bHandToHand && DeusExPlayer(Owner) != None)
-			{
-				mult = 1.0 / DeusExPlayer(Owner).AugmentationSystem.GetAugLevelValue(class'AugCombat');
-				if (mult == -1.0)
-					mult = 1.0;
+			// Removed this code because we handle handtohand stuff elsewhere.
+			if (bAutomatic){
+				sTime = ShotTime;
+			} else {
+				sTime = ShotTime * mult / GetAnimSpeed();
 			}
-			sTime = ShotTime * mult;
+
 			return (sTime);
 		}
 	}
@@ -3736,7 +3767,7 @@ Begin:
 		if (!bAutomatic)
 		{
 			bFiring = False;
-			FinishAnim();
+			//FinishAnim();
 		}
 
 		if (Owner != None)
@@ -3837,8 +3868,8 @@ ignores Fire, AltFire;
 		}
 		else if (DeusExPlayer(Owner) != None)
 		{
-			// check for skill use if we are the player
-			val = GetWeaponSkill();
+			// check for weaponSkill use if we are the player
+			val = weaponSkill;
 			val = ReloadTime + (val*ReloadTime);
 		}
 
@@ -3924,7 +3955,7 @@ simulated state ClientFiring
 				else
 					GotoState('SimFinishFire');
 			}
-			else 
+			else
 				GotoState('SimFinishFire');
 		}
 	}
@@ -4099,8 +4130,8 @@ ignores Fire, AltFire, ClientFire, ClientReFire;
 		}
 		else if (DeusExPlayer(Owner) != None)
 		{
-			// check for skill use if we are the player
-			val = GetWeaponSkill();
+			// check for weaponSkill use if we are the player
+			val = weaponSkill;
 			val = ReloadTime + (val*ReloadTime);
 		}
 		return val;
@@ -4365,8 +4396,13 @@ defaultproperties
 		 dCorrectAim=0.2
 		 wobbleTimeLimit=200.0
 		 fFireAnimFactor=1.0
+		 HitDamageMultiplier=1.0
 		 handleAbility=1.0
 		 aimAbility=1.0
+		 AIFireDelay=0.0
 		 numSlugsOverride=0
+		 ammoConsumption=1
 		 bVisionImportant=True
+		 runWobbleFreq=16
+		 bCanShootFaster=True
 }
