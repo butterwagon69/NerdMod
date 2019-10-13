@@ -5677,8 +5677,8 @@ function DropDecoration()
 		{
 			// throw velocity is based on augmentation
 			if (AugmentationSystem != None)
-			{
-				mult = AugmentationSystem.GetAugLevelValue(class'AugMuscle');
+			{	
+				mult = FMax(AugmentationSystem.GetAugLevelValue(class'AugMuscle'), AugmentationSystem.GetAugLevelValue(class'AugCombat'));
 				if (mult == -1.0)
 					mult = 1.0;
 			}
@@ -5686,7 +5686,7 @@ function DropDecoration()
 			if (IsLeaning())
 				CarriedDecoration.Velocity = vect(0,0,0);
 			else
-				CarriedDecoration.Velocity = Vector(ViewRotation) * mult * 500 + vect(0,0,220) + 40 * VRand();
+				CarriedDecoration.Velocity = Vector(ViewRotation) * (1.0 + 2.0*(mult-1.0)) * 500 + vect(0,0,220) + 40 * VRand();
 
 			// scale it based on the mass
 			velscale = FClamp(CarriedDecoration.Mass / 20.0, 1.0, 40.0);
