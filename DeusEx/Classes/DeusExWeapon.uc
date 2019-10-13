@@ -118,6 +118,7 @@ var Mover placeMover;							// used for prox. mine placement
 
 var() float fFireAnimFactor;
 var() int numSlugsOverride;					// Force override ammo numslugs
+
 var float ShakeTimer;
 var float ShakeYaw;
 var float ShakePitch;
@@ -429,6 +430,8 @@ function bool HandlePickupQuery(Inventory Item)
 
 function BringUp()
 {
+	local float Acc;
+	recoilSpeed = 0;
 	if ( Level.NetMode != NM_Standalone )
 		ReadyClientToFire( False );
 
@@ -439,7 +442,28 @@ function BringUp()
 	// reset the standing still accuracy bonus
 	standingTimer = 0;
 
-	Super.BringUp();
+	// Super.BringUp();
+	// Stolen from Engine
+	if ( Owner.IsA('PlayerPawn') )
+	{
+		SetHand(PlayerPawn(Owner).Handedness);
+		if (( Level.NetMode != NM_Standalone ) && (Role == ROLE_Authority))
+			ClientSetHandedness( PlayerPawn(Owner).Handedness );
+		PlayerPawn(Owner).EndZoom();
+	}
+	bWeaponUp = false;
+	// PlaySelect();
+	PlayAnim('Select',Lerp(FMax(- weaponSkill / 0.8, 0), 0.7, 2.0),0.0);
+	Owner.PlaySound(SelectSound, SLOT_Misc, Pawn(Owner).SoundDampening);
+	GotoState('Active');
+
+	// Done with theft
+
+	// New Stuff!
+	aimActual = pawn(Owner).ViewRotation;
+	currentPitchRate = 512;
+	currentYawRate = 512;
+	ProjectileSpeed = ProjectileClass.Default.Speed * GetDamageMult();
 }
 
 function bool PutDown()
@@ -455,6 +479,24 @@ function bool PutDown()
 
 	return Super.PutDown();
 }
+
+// Overloading Engine so that
+// we can put weapons down faster
+// This gets called by state downWeapon
+simulated function TweenDown()
+{
+	if ( (AnimSequence != '') && (GetAnimGroup(AnimSequence) == 'Select') )
+		TweenAnim( AnimSequence, AnimFrame * 0.4 );
+	else
+	{
+		// Have the put away animation play twice as fast in multiplayer
+		if ( Level.NetMode != NM_Standalone )
+			PlayAnim('Down', 2.0, 0.05);
+		else
+			PlayAnim('Down',Lerp(FMax(- weaponSkill / 0.8, 0), 0.7, 2.0), 0.05);
+	}
+}
+
 
 function ReloadAmmo()
 {
