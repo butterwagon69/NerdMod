@@ -20,4 +20,5 @@ defaultproperties
      spawnAmmoClass=Class'DeusEx.AmmoDartPoison'
      ItemName="Tranquilizer Dart"
      Damage=5.000000
+     speed=2200.000000
 }

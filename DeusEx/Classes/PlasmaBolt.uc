@@ -99,9 +99,9 @@ defaultproperties
      bIgnoresNanoDefense=True
      ItemName="Plasma Bolt"
      ItemArticle="a"
-     speed=1500.000000
-     MaxSpeed=1500.000000
-     Damage=40.000000
+     speed=2500.000000
+     MaxSpeed=2500.000000
+     Damage=10.000000
      MomentumTransfer=5000
      ImpactSound=Sound'DeusExSounds.Weapons.PlasmaRifleHit'
      ExplosionDecal=Class'DeusEx.ScorchMark'

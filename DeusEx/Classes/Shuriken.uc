@@ -50,6 +50,7 @@ defaultproperties
      AccurateRange=640
      maxRange=1280
      spawnWeaponClass=Class'DeusEx.WeaponShuriken'
+	 spawnAmmoClass=Class'DeusEx.AmmoShuriken'
      bIgnoresNanoDefense=True
      ItemName="Throwing Knife"
      ItemArticle="a"
@@ -61,4 +62,5 @@ defaultproperties
      Mesh=LodMesh'DeusExItems.ShurikenPickup'
      CollisionRadius=5.000000
      CollisionHeight=0.300000
+	 bIgnoresGravity=False
 }

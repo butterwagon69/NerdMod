@@ -53,18 +53,19 @@ defaultproperties
      bExplodes=True
      bBlood=True
      bDebris=True
-     blastRadius=512.000000
+     blastRadius=192.000000
      DamageType=exploded
      AccurateRange=400
      maxRange=800
      ItemName="HE 20mm Shell"
      ItemArticle="a"
-     speed=1000.000000
-     MaxSpeed=1000.000000
+     speed=1200.000000
+     MaxSpeed=1200.000000
      Damage=150.000000
      MomentumTransfer=40000
      SpawnSound=Sound'DeusExSounds.Weapons.GEPGunFire'
      ImpactSound=Sound'DeusExSounds.Generic.MediumExplosion2'
      ExplosionDecal=Class'DeusEx.ScorchMark'
      Mesh=LodMesh'DeusExItems.HECannister20mm'
+		 bIgnoresGravity=False
 }
