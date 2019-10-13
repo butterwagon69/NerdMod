@@ -52,5 +52,7 @@ defaultproperties
      CollisionRadius=9.300000
      CollisionHeight=10.210000
      bCollideActors=True
+	 HitDamageSpecial=25
+	 fSpreadMult=0.25
 	 dropRate=15
 }

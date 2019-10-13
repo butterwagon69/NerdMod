@@ -2485,11 +2485,27 @@ simulated function TraceFire( float Accuracy )
 	// otherwise we don't hit the target at all
 }
 
+simulated function int GetHitDamage(){
+	local DeusExAmmo ammo;
+	local int HitDamageSpecial;
+
+	ammo = DeusExAmmo(AmmoType);
+	HitDamageSpecial = ammo.HitDamageSpecial;
+	if (HitDamageSpecial != 0){
+		// Owner.BroadcastMessage("HitDamange: " $ HitDamageMultiplier * HitDamageSpecial);
+		return int(HitDamageMultiplier * HitDamageSpecial);
+	} else {
+		// Owner.BroadcastMessage("HitDamange: " $ HitDamage);
+		return HitDamage;
+	}
+}
 simulated function ProcessTraceHit(Actor Other, Vector HitLocation, Vector HitNormal, Vector X, Vector Y, Vector Z)
 {
 	local float        mult;
 	local name         damageType;
 	local DeusExPlayer dxPlayer;
+	local int damage;
+	damage = GetHitDamage();
 
 	if (Other != None)
 	{
@@ -2521,16 +2537,16 @@ simulated function ProcessTraceHit(Actor Other, Vector HitLocation, Vector HitNo
 		if ((Other == Level) || (Other.IsA('Mover')))
 		{
 			if ( Role == ROLE_Authority )
-				Other.TakeDamage(HitDamage * mult, Pawn(Owner), HitLocation, 1000.0*X, damageType);
+				Other.TakeDamage(damage * mult, Pawn(Owner), HitLocation, 1000.0*X, damageType);
 
-			SelectiveSpawnEffects( HitLocation, HitNormal, Other, HitDamage * mult);
+			SelectiveSpawnEffects( HitLocation, HitNormal, Other, damage * mult);
 		}
 		else if ((Other != self) && (Other != Owner))
 		{
 			if ( Role == ROLE_Authority )
-				Other.TakeDamage(HitDamage * mult, Pawn(Owner), HitLocation, 1000.0*X, damageType);
+				Other.TakeDamage(damage * mult, Pawn(Owner), HitLocation, 1000.0*X, damageType);
 			if (bHandToHand)
-				SelectiveSpawnEffects( HitLocation, HitNormal, Other, HitDamage * mult);
+				SelectiveSpawnEffects( HitLocation, HitNormal, Other, damage * mult);
 
 			if (bPenetrating && Other.IsA('Pawn') && !Other.IsA('Robot'))
 				SpawnBlood(HitLocation, HitNormal);
