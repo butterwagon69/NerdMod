@@ -55,7 +55,7 @@ function bool FilterDamageType(Pawn instigatedBy, Vector hitLocation,
 		return Super.FilterDamageType(instigatedBy, hitLocation, offset, damageType);
 }
 
-function GotoDisabledState(name damageType, EHitLocation hitPos)
+function GotoDisabledState(name damageType, EHitLocation hitPos, int Damage)
 {
 	if (!bCollideActors && !bBlockActors && !bBlockPlayers)
 		return;
@@ -69,9 +69,9 @@ function GotoDisabledState(name damageType, EHitLocation hitPos)
 		GotoNextState();
 }
 
-function ReactToInjury(Pawn instigatedBy, Name damageType, EHitLocation hitPos)
+function ReactToInjury(Pawn instigatedBy, Name damageType, EHitLocation hitPos, int Damage)
 {
-	Super.ReactToInjury(instigatedBy, damageType, hitPos);
+	Super.ReactToInjury(instigatedBy, damageType, hitPos, Damage);
 	aggressiveTimer = 10;
 }
 

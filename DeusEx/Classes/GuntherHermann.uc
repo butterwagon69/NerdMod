@@ -103,7 +103,7 @@ function Explode()
 	HurtRadius(explosionDamage, explosionRadius, 'Exploded', explosionDamage*100, Location);
 }
 
-function GotoDisabledState(name damageType, EHitLocation hitPos)
+function GotoDisabledState(name damageType, EHitLocation hitPos, int Damage)
 {
 	if (!bCollideActors && !bBlockActors && !bBlockPlayers)
 		return;

@@ -62,7 +62,7 @@ function float ShieldDamage(Name damageType)
 }
 
 
-function GotoDisabledState(name damageType, EHitLocation hitPos)
+function GotoDisabledState(name damageType, EHitLocation hitPos, int Damage)
 {
 	if (!bCollideActors && !bBlockActors && !bBlockPlayers)
 		return;

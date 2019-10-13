@@ -38,7 +38,7 @@ function float ModifyDamage(int Damage, Pawn instigatedBy, Vector hitLocation,
 	return actualDamage;
 }
 
-function GotoDisabledState(name damageType, EHitLocation hitPos)
+function GotoDisabledState(name damageType, EHitLocation hitPos, int Damage)
 {
 	if (!bCollideActors && !bBlockActors && !bBlockPlayers)
 		return;

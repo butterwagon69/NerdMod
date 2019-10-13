@@ -249,10 +249,10 @@ function TakeDamageBase(int Damage, Pawn instigatedBy, Vector hitlocation, Vecto
 	}
 	MakeNoise(1.0);
 
-	ReactToInjury(instigatedBy, damageType, HITLOC_None);
+	ReactToInjury(instigatedBy, damageType, HITLOC_None, actualDamage);
 }
 
-function ReactToInjury(Pawn instigatedBy, Name damageType, EHitLocation hitPos)
+function ReactToInjury(Pawn instigatedBy, Name damageType, EHitLocation hitPos, int Damage)
 {
 	local Pawn oldEnemy;
 
@@ -269,11 +269,11 @@ function ReactToInjury(Pawn instigatedBy, Name damageType, EHitLocation hitPos)
 				PlayNewTargetSound();
 			instigatedBy = Enemy;
 		}
-		Super.ReactToInjury(instigatedBy, damageType, hitPos);
+		Super.ReactToInjury(instigatedBy, damageType, hitPos, Damage);
 	}
 }
 
-function GotoDisabledState(name damageType, EHitLocation hitPos)
+function GotoDisabledState(name damageType, EHitLocation hitPos, int Damage)
 {
 	if (!bCollideActors && !bBlockActors && !bBlockPlayers)
 		return;

@@ -59,7 +59,7 @@ function bool IsNearHome(vector position)
 }
 
 
-function ReactToInjury(Pawn instigatedBy, Name damageType, EHitLocation hitPos) {}
+function ReactToInjury(Pawn instigatedBy, Name damageType, EHitLocation hitPos, int Damage) {}
 
 state Wandering
 {

@@ -2476,7 +2476,7 @@ function SetWeapon(Weapon newWeapon)
 // ReactToInjury()
 // ----------------------------------------------------------------------
 
-function ReactToInjury(Pawn instigatedBy, Name damageType, EHitLocation hitPos)
+function ReactToInjury(Pawn instigatedBy, Name damageType, EHitLocation hitPos, int Damage)
 {
 	local Name currentState;
 	local bool bHateThisInjury;
@@ -2511,7 +2511,7 @@ function ReactToInjury(Pawn instigatedBy, Name damageType, EHitLocation hitPos)
 //				ReactToFutz();
 			SetNextState(currentState);
 		}
-		GotoDisabledState(damageType, hitPos);
+		GotoDisabledState(damageType, hitPos, Damage);
 	}
 }
 
@@ -3228,7 +3228,7 @@ function TakeDamageBase(int Damage, Pawn instigatedBy, Vector hitlocation, Vecto
 	if ((DamageType == 'Flamed') && !bOnFire)
 		CatchFire();
 
-	ReactToInjury(instigatedBy, damageType, hitPos);
+	ReactToInjury(instigatedBy, damageType, hitPos, Damage);
 }
 
 
@@ -3408,14 +3408,17 @@ function bool FrobDoor(actor Target)
 // GotoDisabledState()
 // ----------------------------------------------------------------------
 
-function GotoDisabledState(name damageType, EHitLocation hitPos)
+function GotoDisabledState(name damageType, EHitLocation hitPos, int Damage)
 {
 	if (!bCollideActors && !bBlockActors && !bBlockPlayers)
 		return;
 	else if ((damageType == 'TearGas') || (damageType == 'HalonGas'))
 		GotoState('RubbingEyes');
 	else if (damageType == 'Stunned')
+	{
+		StunTimerTester = StunTimerTester + Damage;
 		GotoState('Stunned');
+	}
 	else if (CanShowPain())
 		TakeHit(hitPos);
 	else
@@ -10623,7 +10626,7 @@ ContinueFromDoor:
 
 State Fleeing
 {
-	function ReactToInjury(Pawn instigatedBy, Name damageType, EHitLocation hitPos)
+	function ReactToInjury(Pawn instigatedBy, Name damageType, EHitLocation hitPos, int Damage)
 	{
 		local Name currentState;
 		local Pawn oldEnemy;
@@ -10673,7 +10676,7 @@ State Fleeing
 					newLabel = 'ContinueFlee';
 				SetNextState('Fleeing', newLabel);
 			}
-			GotoDisabledState(damageType, hitPos);
+			GotoDisabledState(damageType, hitPos, Damage);
 		}
 	}
 
@@ -11096,7 +11099,7 @@ ContinueFromDoor:
 
 State Attacking
 {
-	function ReactToInjury(Pawn instigatedBy, Name damageType, EHitLocation hitPos)
+	function ReactToInjury(Pawn instigatedBy, Name damageType, EHitLocation hitPos, int Damage)
 	{
 		local Pawn oldEnemy;
 		local bool bHateThisInjury;
@@ -11133,7 +11136,7 @@ State Attacking
 					PlayNewTargetSound();
 				SetNextState('Attacking', 'ContinueAttack');
 			}
-			GotoDisabledState(damageType, hitPos);
+			GotoDisabledState(damageType, hitPos, Damage);
 		}
 	}
 
@@ -12908,7 +12911,7 @@ ContinueFromDoor:
 
 state Burning
 {
-	function ReactToInjury(Pawn instigatedBy, Name damageType, EHitLocation hitPos)
+	function ReactToInjury(Pawn instigatedBy, Name damageType, EHitLocation hitPos, int Damage)
 	{
 		local name newLabel;
 
@@ -12926,7 +12929,7 @@ state Burning
 				LastSeenPos = Enemy.Location;
 			SetNextState('Burning', newLabel);
 			if ((damageType != 'TearGas') && (damageType != 'HalonGas') && (damageType != 'Stunned'))
-				GotoDisabledState(damageType, hitPos);
+				GotoDisabledState(damageType, hitPos, Damage);
 		}
 	}
 
@@ -13638,10 +13641,10 @@ state RubbingEyes
 		TakeDamageBase(Damage, instigatedBy, hitlocation, momentum, damageType, false);
 	}
 
-	function ReactToInjury(Pawn instigatedBy, Name damageType, EHitLocation hitPos)
+	function ReactToInjury(Pawn instigatedBy, Name damageType, EHitLocation hitPos, int Damage)
 	{
 		if ((damageType != 'TearGas') && (damageType != 'HalonGas') && (damageType != 'Stunned'))
-			Global.ReactToInjury(instigatedBy, damageType, hitPos);
+			Global.ReactToInjury(instigatedBy, damageType, hitPos, Damage);
 	}
 
 	function SetFall()
@@ -13717,10 +13720,10 @@ state Stunned
 		TakeDamageBase(Damage, instigatedBy, hitlocation, momentum, damageType, false);
 	}
 
-	function ReactToInjury(Pawn instigatedBy, Name damageType, EHitLocation hitPos)
+	function ReactToInjury(Pawn instigatedBy, Name damageType, EHitLocation hitPos, int Damage)
 	{
 		if ((damageType != 'TearGas') && (damageType != 'HalonGas') && (damageType != 'Stunned'))
-			Global.ReactToInjury(instigatedBy, damageType, hitPos);
+			Global.ReactToInjury(instigatedBy, damageType, hitPos, Damage);
 	}
 
 	function SetFall()

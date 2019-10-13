@@ -13,7 +13,7 @@ function bool FilterDamageType(Pawn instigatedBy, Vector hitLocation,
 		return Super.FilterDamageType(instigatedBy, hitLocation, offset, damageType);
 }
 
-function GotoDisabledState(name damageType, EHitLocation hitPos)
+function GotoDisabledState(name damageType, EHitLocation hitPos, int Damage)
 {
 	if (!bCollideActors && !bBlockActors && !bBlockPlayers)
 		return;

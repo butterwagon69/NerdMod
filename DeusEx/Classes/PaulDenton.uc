@@ -38,7 +38,7 @@ function float ShieldDamage(name damageType)
 		return Super.ShieldDamage(damageType);
 }
 
-function GotoDisabledState(name damageType, EHitLocation hitPos)
+function GotoDisabledState(name damageType, EHitLocation hitPos, int Damage)
 {
 	if (!bCollideActors && !bBlockActors && !bBlockPlayers)
 		return;
