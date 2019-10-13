@@ -4,6 +4,7 @@
 class WeaponRifle extends DeusExWeapon;
 
 var float	mpNoScopeMult;
+var int ammoLoadedIndex;
 
 simulated function PreBeginPlay()
 {
@@ -24,10 +25,136 @@ simulated function PreBeginPlay()
 	}
 }
 
+// Want to make snipers super dangerous
+simulated function float GetWeaponSkill()
+{
+	if (ScriptedPawn(Owner) != None) {
+		return -0.7;
+	}
+	else
+	{
+		return Super.GetWeaponSkill();
+	}
+}
+
+function bool LoadAmmo(int ammoNum){
+	local bool result;
+	local float reloadDiff;
+	local int numReloadMods;
+	local int i;
+	result = super.LoadAmmo(ammoNum);
+	if (result)
+	{
+		if (ammoNum == 0)
+		{
+			ammoLoadedIndex = 0;
+			numReloadMods = int(ModReloadCount / Class'WeaponModClip'.default.WeaponModifier);
+			// Replicating code from WeaponModClip because I am a big dummy
+
+			reloadDiff = Default.ReloadCount * Class'WeaponModClip'.default.WeaponModifier;
+			if (reloadDiff < 1)
+				reloadDiff = 1;
+			ReloadCount = Default.ReloadCount + int(reloadDiff * numReloadMods);
+			LowAmmoWaterMark = Default.LowAmmoWaterMark;
+		}
+		else if (ammoNum == 1)
+		{
+			ammoLoadedIndex = 1;
+			ReloadCount = 1;
+			LowAmmoWaterMark = 4;
+		}
+	}
+	return result;
+}
+
+function name WeaponDamageType()
+{
+	local name                    damageType;
+	local Class<DeusExProjectile> projClass;
+	if (ammoLoadedIndex == 1)
+	{
+		damageType = 'Sabot';
+	}
+	else
+	{
+		damageType = 'Shot';
+	}
+	return (damageType);
+}
+
+simulated function ProcessTraceHit(Actor Other, Vector HitLocation, Vector HitNormal, Vector X, Vector Y, Vector Z)
+{
+	local float        mult;
+	local Vector StartTrace, EndTrace,  NextHitLocation, NextHitNormal;
+	local Rotator rot;
+	local actor nextTarget;
+	local name         damageType;
+	local DeusExPlayer dxPlayer;
+	local int damage;
+
+
+	Super.ProcessTraceHit(Other, HitLocation, HitNormal, X, Y, Z);
+
+	if (ammoLoadedIndex == 1)
+	{
+
+		StartTrace = HitLocation + 32 * vector(aimActual);
+		//EndTrace = StartTrace + (FMax(1024, MaxRange) * HitNormal);
+		EndTrace = StartTrace + (FMax(1024, MaxRange) * vector(aimActual));
+
+		nextTarget = Pawn(Owner).TraceShot(NextHitLocation, NextHitNormal, EndTrace, StartTrace);
+		// BroadcastMessage("HitLocation: " $ HitLocation.X $ ", " $ HitLocation.Y $ ", " $ HitLocation.Z);
+		// BroadcastMessage("HitNormal: " $ HitNormal.X $ ", " $ HitNormal.Y $ ", " $ HitNormal.Z);
+		// BroadcastMessage("NextHitNormal: " $ NextHitNormal.X $ ", " $ NextHitNormal.Y $ ", " $ NextHitNormal.Z);
+		// BroadcastMessage("NextHitLocation: " $ NextHitLocation.X $ ", " $ NextHitLocation.Y $ ", " $ NextHitLocation.Z);
+		// BroadcastMessage("HitLocation: " $ HitLocation.X $ ", " $ HitLocation.Y $ ", " $ HitLocation.Z);
+		// BroadcastMessage("StartTrace: " $ StartTrace.X $ ", " $ StartTrace.Y $ ", " $ StartTrace.Z);
+		// BroadcastMessage("EndTrace: " $ EndTrace.X $ ", " $ EndTrace.Y $ ", " $ StartTrace.Z);
+		// BroadcastMessage("Other: " $ Other);
+		// BroadcastMessage("nextTarget" $ nextTarget);
+		if ((nextTarget == Level) || ((nextTarget != None) && nextTarget.IsA('Mover')))
+		{
+			Super.ProcessTraceHit(nextTarget, NextHitLocation, NextHitNormal, X, Y, Z);
+		}
+		else
+		{
+			ProcessTraceHit(nextTarget, NextHitLocation, NextHitNormal, X, Y, Z);
+		}
+	}
+
+}
+
+function GetAIVolume(out float volume, out float radius)
+{
+	if (ammoLoadedIndex == 0)
+	{
+		Super.GetAIVolume(volume, radius);
+	}
+	else
+	{
+		volume = NoiseLevel*Pawn(Owner).SoundDampening;
+		radius = volume * 4800.0;
+	}
+}
+
+
+
+simulated function PlayFiringSound()
+{
+	if (ammoLoadedIndex == 0)
+	{
+		Super.PlayFiringSound();
+	}
+	else
+	{
+		PlaySimSound( FireSound, SLOT_None, TransientSoundVolume, 2048 );
+	}
+}
+
 defaultproperties
 {
      mpNoScopeMult=0.350000
-     LowAmmoWaterMark=6
+     LowAmmoWaterMark=4
      GoverningSkill=Class'DeusEx.SkillWeaponRifle'
      NoiseLevel=2.000000
      EnviroEffective=ENVEFF_Air
@@ -41,21 +168,24 @@ defaultproperties
      bCanHaveLaser=True
      bCanHaveSilencer=True
      bHasMuzzleFlash=False
-     recoilStrength=0.400000
+     recoilStrength=9.0000
      bUseWhileCrouched=False
      mpReloadTime=2.000000
      mpHitDamage=25
      mpAccurateRange=28800
      mpMaxRange=28800
-     mpReloadCount=6
+     mpReloadCount=4
      bCanHaveModBaseAccuracy=True
      bCanHaveModReloadCount=True
      bCanHaveModAccurateRange=True
      bCanHaveModReloadTime=True
      bCanHaveModRecoilStrength=True
      AmmoName=Class'DeusEx.Ammo3006'
-     ReloadCount=6
-     PickupAmmoCount=6
+		 AmmoNames(0)=Class'DeusEx.Ammo3006'
+     AmmoNames(1)=Class'DeusEx.Ammo3006Magnum'
+	   BaseAccuracy=0.0250000
+     ReloadCount=4
+     PickupAmmoCount=4
      bInstantHit=True
      FireOffset=(X=-20.000000,Y=2.000000,Z=30.000000)
      shakemag=50.000000
@@ -81,4 +211,6 @@ defaultproperties
      CollisionRadius=26.000000
      CollisionHeight=2.000000
      Mass=30.000000
+	 	 handleAbility=0.4
+	 	 aimAbility=2.5
 }
