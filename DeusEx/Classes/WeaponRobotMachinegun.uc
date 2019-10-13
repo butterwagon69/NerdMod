@@ -16,4 +16,5 @@ defaultproperties
      FireSound=Sound'DeusExSounds.Robot.RobotFireGun'
      CockingSound=Sound'DeusExSounds.Weapons.AssaultGunReload'
      SelectSound=Sound'DeusExSounds.Weapons.AssaultGunSelect'
+	   fFireAnimFactor=20.0
 }

@@ -74,4 +74,5 @@ defaultproperties
      CollisionRadius=15.600000
      CollisionHeight=5.200000
      Mass=50.000000
+	 fFireAnimFactor=5.0
 }

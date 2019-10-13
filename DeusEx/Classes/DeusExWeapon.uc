@@ -116,6 +116,7 @@ var Vector placeLocation;						// used for prox. mine placement
 var Vector placeNormal;							// used for prox. mine placement
 var Mover placeMover;							// used for prox. mine placement
 
+var() float fFireAnimFactor;
 var() int numSlugsOverride;					// Force override ammo numslugs
 var float ShakeTimer;
 var float ShakeYaw;
@@ -1896,10 +1897,10 @@ simulated function PlaySelectiveFiring()
 
 	if (( Level.NetMode == NM_Standalone ) || ( DeusExPlayer(Owner) == DeusExPlayer(GetPlayerPawn())) )
 	{
-		if (bAutomatic)
-			LoopAnim(anim,, 0.1);
+		if (!bCanShootFaster)
+			LoopAnim(anim,fFireAnimFactor, 0.1);
 		else
-			PlayAnim(anim,,0.1);
+			PlayAnim(anim,fFireAnimFactor * GetAnimSpeed(),0.1);
 	}
 	else if ( Role == ROLE_Authority )
 	{
@@ -3885,5 +3886,6 @@ defaultproperties
      bNoSmooth=False
      Mass=10.000000
      Buoyancy=5.000000
+		 fFireAnimFactor=1.0
 		 numSlugsOverride=0
 }
