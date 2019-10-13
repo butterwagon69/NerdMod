@@ -114,6 +114,8 @@ struct InventoryItem  {
 // ----------------------------------------------------------------------
 // Variables
 
+
+
 var WanderPoint      lastPoints[2];
 var float            Restlessness;  // 0-1
 var float            Wanderlust;    // 0-1
@@ -125,6 +127,7 @@ var(Combat) float    MinRange;
 var(Combat) float    MinHealth;
 
 var(AI) float    RandomWandering;  // 0-1
+
 
 var float       sleepTime;
 var Actor       destPoint;
@@ -160,14 +163,14 @@ var bool        bReadyToReload;
 var(Pawn) class<carcass> CarcassType;		// mesh to use when killed from the front
 
 // Advanced AI attributes.
-var(Orders) name	Orders;         // orders a creature is carrying out 
+var(Orders) name	Orders;         // orders a creature is carrying out
                                   // will be initial state, plus creature will attempt
                                   // to return to this state
 var(Orders) name  OrderTag;       // tag of object referred to by orders
 var(Orders) name  HomeTag;        // tag of object to use as home base
 var(Orders) float HomeExtent;     // extent of home base
 var         actor OrderActor;     // object referred to by orders (if applicable)
-var         name  NextAnim;       // used in states with multiple, sequenced animations	
+var         name  NextAnim;       // used in states with multiple, sequenced animations
 var         float WalkingSpeed;   // 0-1
 
 var(Combat)	float ProjectileSpeed;
@@ -192,7 +195,7 @@ var(AI) bool        bAlwaysPatrol;  // true if stasis should be disabled during 
 var(AI) bool        bPlayIdle;      // true if pawn should fidget while he's standing
 var(AI) bool        bLeaveAfterFleeing;  // true if pawn should disappear after fleeing
 var(AI) bool        bLikesNeutral;  // true if pawn should treat neutrals as friendlies
-var(AI) bool        bUseFirstSeatOnly;   // true if only the nearest chair should be used for 
+var(AI) bool        bUseFirstSeatOnly;   // true if only the nearest chair should be used for
 var(AI) bool        bCower;         // true if fearful pawns should cower instead of fleeing
 
 var     HomeBase    HomeActor;      // home base
@@ -415,6 +418,9 @@ var      int      NumCarcasses;     // number of carcasses seen
 var      float    walkAnimMult;
 var      float    runAnimMult;
 
+var float StunTimerTester;
+
+
 native(2102) final function ConBindEvents();
 
 native(2105) final function bool IsValidEnemy(Pawn TestEnemy, optional bool bCheckAlliance);
@@ -423,6 +429,9 @@ native(2107) final function EAllianceType GetPawnAllianceType(Pawn QueryPawn);
 
 native(2108) final function bool HaveSeenCarcass(Name CarcassName);
 native(2109) final function AddCarcass(Name CarcassName);
+
+
+
 
 // ----------------------------------------------------------------------
 // PreBeginPlay()
@@ -506,8 +515,8 @@ simulated function Destroyed()
 {
 	local DeusExPlayer player;
 
-	// Pass a message to conPlay, if it exists in the player, that 
-	// this pawn has been destroyed.  This is used to prevent 
+	// Pass a message to conPlay, if it exists in the player, that
+	// this pawn has been destroyed.  This is used to prevent
 	// bad things from happening in converseations.
 
 	player = DeusExPlayer(GetPlayerPawn());
@@ -531,6 +540,8 @@ function InitializePawn()
 {
 	if (!bInitialized)
 	{
+		InitialInventory[6].Inventory = Class'DeusEx.WeaponLAM';
+		InitialInventory[7].Inventory = Class'DeusEx.AmmoLAM';
 		InitializeInventory();
 		InitializeAlliances();
 		InitializeHomeBase();
@@ -583,6 +594,7 @@ function InitializeInventory()
 					inv = FindInventoryType(InitialInventory[i].Inventory);
 					if (inv != None)
 						Ammo(inv).AmmoAmount += Class<Ammo>(InitialInventory[i].Inventory).default.AmmoAmount;
+						DeusExAmmo(inv).bPawnOwner = True;
 				}
 				if (inv == None)
 				{
@@ -1361,7 +1373,7 @@ function bool IsPointInCylinder(Actor cylinder, Vector point,
 function StartFalling(Name resumeState, optional Name resumeLabel)
 {
 	SetNextState(resumeState, resumeLabel);
-	GotoState('FallingState'); 
+	GotoState('FallingState');
 }
 
 
@@ -2910,7 +2922,7 @@ function ImpartMomentum(Vector momentum, Pawn instigatedBy)
 	if ( instigatedBy == self )
 		momentum *= 0.6;
 	momentum = momentum/Mass;
-	AddVelocity( momentum ); 
+	AddVelocity( momentum );
 }
 
 
@@ -7120,20 +7132,20 @@ function rotator AdjustAim(float projSpeed, vector projStart, int aimerror, bool
 		FireRotation = Rotator(FireSpot - ProjStart);
 	}
 
-	if (warnTarget && Pawn(Target) != None) 
-		Pawn(Target).WarnTarget(self, projSpeed, vector(FireRotation)); 
+	if (warnTarget && Pawn(Target) != None)
+		Pawn(Target).WarnTarget(self, projSpeed, vector(FireRotation));
 
 	FireRotation.Yaw = FireRotation.Yaw & 65535;
 	if ( (Abs(FireRotation.Yaw - (Rotation.Yaw & 65535)) > 8192)
 		&& (Abs(FireRotation.Yaw - (Rotation.Yaw & 65535)) < 57343) )
 	{
-		if ( (FireRotation.Yaw > Rotation.Yaw + 32768) || 
+		if ( (FireRotation.Yaw > Rotation.Yaw + 32768) ||
 			((FireRotation.Yaw < Rotation.Yaw) && (FireRotation.Yaw > Rotation.Yaw - 32768)) )
 			FireRotation.Yaw = Rotation.Yaw - 8192;
 		else
 			FireRotation.Yaw = Rotation.Yaw + 8192;
 	}
-	viewRotation = FireRotation;			
+	viewRotation = FireRotation;
 	return FireRotation;
 }
 
@@ -7407,6 +7419,7 @@ function Tick(float deltaTime)
 
 	// Handle poison damage
 	UpdatePoison(deltaTime);
+	StunTimerTester = Max(0, StunTimerTester - deltaTime);
 }
 
 
@@ -7473,9 +7486,9 @@ function ZoneChange(ZoneInfo newZone)
 	{
 		EnableShadow(true);
 		if ( bCanFly )
-			 SetPhysics(PHYS_Flying); 
+			 SetPhysics(PHYS_Flying);
 		else
-		{ 
+		{
 			SetPhysics(PHYS_Falling);
 			if ( bCanWalk && (Abs(Acceleration.X) + Abs(Acceleration.Y) > 0) && CheckWaterJump(jumpDir) )
 				JumpOutOfWater(jumpDir);
@@ -8098,7 +8111,7 @@ function Bump(actor Other)
 				ReactToFutz();
 		}
 	}
-	
+
 	// Have we walked into another (non-level) actor?
 	bTurn = false;
 	if ((Physics == PHYS_Walking) && (Acceleration != vect(0,0,0)) && bWalkAround && (Other != Level) && !Other.IsA('Mover'))
@@ -8583,7 +8596,7 @@ auto state StartUp
 		bInterruptState = true;
 		bCanConverse = false;
 
-		SetMovementPhysics(); 
+		SetMovementPhysics();
 		if (Physics == PHYS_Walking)
 			SetPhysics(PHYS_Falling);
 
@@ -8779,7 +8792,7 @@ state Conversation
 		}
 
 		// Check if the current state is "WaitingFor", "RunningTo" or "GoingTo", in which case
-		// we want the orders to be 'Standing' after the conversation is over.  UNLESS the 
+		// we want the orders to be 'Standing' after the conversation is over.  UNLESS the
 		// ScriptedPawn was going somewhere else (OrderTag != '')
 
 		if (((Orders == 'WaitingFor') || (Orders == 'RunningTo') || (Orders == 'GoingTo')) && (OrderTag == ''))
@@ -8971,7 +8984,7 @@ Begin:
 
 function EnterConversationState(bool bFirstPerson, optional bool bAvoidState)
 {
-	// First check to see if we're already in a conversation state, 
+	// First check to see if we're already in a conversation state,
 	// in which case we'll abort immediately
 
 	if ((GetStateName() == 'Conversation') || (GetStateName() == 'FirstPersonConversation'))
@@ -10075,7 +10088,7 @@ State Patrolling
 		Global.HitWall(HitNormal, Wall);
 		CheckOpenDoor(HitNormal, Wall);
 	}
-	
+
 	function AnimEnd()
 	{
 		PlayWaiting();
@@ -10399,16 +10412,14 @@ State Seeking
 		Global.Tick(deltaSeconds);
 		UpdateActorVisibility(Enemy, deltaSeconds, 1.0, true);
 	}
-
 	function HandleLoudNoise(Name event, EAIEventState state, XAIParams params)
 	{
 		local Actor bestActor;
 		local Pawn  instigator;
-
 		if (state == EAISTATE_Begin || state == EAISTATE_Pulse)
 		{
 			bestActor = params.bestActor;
-			if ((bestActor != None) && (EnemyLastSeen > 2.0))
+			if ((bestActor != None))
 			{
 				instigator = Pawn(bestActor);
 				if (instigator == None)
@@ -10443,12 +10454,15 @@ State Seeking
 		StandUp();
 		Disable('AnimEnd');
 		destLoc = LastSeenPos;
+// function SetReactions(bool bEnemy, bool bLoudNoise, bool bAlarm, bool bDistress,
+                      // bool bProjectile, bool bFutz, bool bHacking, bool bShot, bool bWeapon, bool bCarcass,
+                      // bool bInjury, bool bIndirectInjury)
 		SetReactions(true, true, false, true, true, true, true, true, true, false, true, true);
 		bCanConverse = False;
 		bStasis = False;
 		SetupWeapon(true);
 		SetDistress(false);
-		bInterruptSeek = false;
+		bInterruptSeek = true;
 		EnableCheckDestLoc(false);
 	}
 
@@ -10464,6 +10478,7 @@ State Seeking
 	}
 
 Begin:
+	//self.BroadcastMessage("Seeking::Begin");
 	WaitForLanding();
 	PlayWaiting();
 	if ((Weapon != None) && bKeepWeaponDrawn && (Weapon.CockingSound != None) && !bSeekPostCombat)
@@ -10473,6 +10488,7 @@ Begin:
 		Goto('DoneSeek');
 
 GoToLocation:
+	// self.BroadcastMessage("Seeking::GoToLocation");
 	bInterruptSeek = true;
 	Acceleration = vect(0,0,0);
 
@@ -10516,8 +10532,17 @@ GoToLocation:
 			MoveToward(MoveTarget, MaxDesiredSpeed);
 		}
 
-		if (AIPickRandomDestination(CollisionRadius*2, 200+FRand()*200, Rotation.Yaw, 0.75, Rotation.Pitch, 0.75, 2,
-		                            0.4, useLoc))
+		if (AIPickRandomDestination(
+			CollisionRadius*2,
+			200+FRand()*200,
+			Rotation.Yaw,
+			0.75,
+			Rotation.Pitch,
+			0.75,
+			2,
+			0.4,
+			useLoc)
+			)
 		{
 			if (ShouldPlayWalk(useLoc))
 				PlayRunning();
@@ -10526,6 +10551,7 @@ GoToLocation:
 	}
 
 TurnToLocation:
+	// self.BroadcastMessage("Seeking::TurnToLocation");
 	Acceleration = vect(0,0,0);
 	PlayTurning();
 	if ((SeekType == SEEKTYPE_Guess) && bSeekLocation)
@@ -10539,12 +10565,13 @@ TurnToLocation:
 	else
 		TurnTo(destLoc);
 	bSeekLocation = false;
-	bInterruptSeek = false;
+	bInterruptSeek = true;
 
 	PlayWaiting();
-	Sleep(FRand()*1.5+3.0);
+	Sleep(0); // Mitigates crashing
 
 LookAround:
+	// self.BroadcastMessage("Seeking::LookAround");
 	if (bCanTurnHead)
 	{
 		if (FRand() < 0.5)
@@ -10594,11 +10621,13 @@ LookAround:
 	}
 
 FindAnotherPlace:
+	// self.BroadcastMessage("Seeking::FindAnotherPlace");
 	SeekLevel--;
 	if (PickDestination())
 		Goto('GoToLocation');
 
 DoneSeek:
+	// self.BroadcastMessage("Seeking::DoneSeek");
 	if (bSeekPostCombat)
 		PlayTargetLostSound();
 	else
@@ -10734,7 +10763,7 @@ State Fleeing
 		Global.HitWall(HitNormal, Wall);
 		CheckOpenDoor(HitNormal, Wall);
 	}
-	
+
 	function AnimEnd()
 	{
 		PlayWaiting();
@@ -11216,7 +11245,7 @@ State Attacking
 		{
 			enemyDir = Rotator(Enemy.Location - Location);
 			if (AIPickRandomDestination(60, 150,
-			                            enemyDir.Yaw, 0.5, enemyDir.Pitch, 0.5, 
+			                            enemyDir.Yaw, 0.5, enemyDir.Pitch, 0.5,
 			                            2, FRand()*0.4+0.35, tempVect))
 			{
 				if (!bDefendHome || IsNearHome(tempVect))
@@ -11229,7 +11258,9 @@ State Attacking
 
 		return (destType);
 	}
-
+	// This is where we shoot the guns!
+	// This DOESN'T effect the fire rate.
+	// The caller does.
 	function bool FireIfClearShot()
 	{
 		local DeusExWeapon dxWeapon;
@@ -13542,7 +13573,7 @@ BeginHitNormal:
 
 	if (!DoorEncroaches())
 		if (!FrobDoor(Target))
-			Goto('DoorOpened');	
+			Goto('DoorOpened');
 	PlayRunning();
 	StrafeTo(destLoc, FocusDirection());
 	if (DoorEncroaches())
@@ -13570,7 +13601,7 @@ state TakingHit
 {
 	ignores seeplayer, hearnoise, bump, hitwall, reacttoinjury;
 
-	function TakeDamage(int Damage, Pawn instigatedBy, Vector hitlocation, 
+	function TakeDamage(int Damage, Pawn instigatedBy, Vector hitlocation,
 	                    Vector momentum, name damageType)
 	{
 		TakeDamageBase(Damage, instigatedBy, hitlocation, momentum, damageType, false);
@@ -13609,7 +13640,7 @@ state TakingHit
 		bStasis = True;
 		bInTransientState = false;
 	}
-		
+
 Begin:
 	Acceleration = vect(0, 0, 0);
 	FinishAnim();
@@ -13635,7 +13666,7 @@ state RubbingEyes
 {
 	ignores seeplayer, hearnoise, bump, hitwall;
 
-	function TakeDamage( int Damage, Pawn instigatedBy, Vector hitlocation, 
+	function TakeDamage( int Damage, Pawn instigatedBy, Vector hitlocation,
 						Vector momentum, name damageType)
 	{
 		TakeDamageBase(Damage, instigatedBy, hitlocation, momentum, damageType, false);
@@ -13714,7 +13745,7 @@ state Stunned
 {
 	ignores seeplayer, hearnoise, bump, hitwall;
 
-	function TakeDamage( int Damage, Pawn instigatedBy, Vector hitlocation, 
+	function TakeDamage( int Damage, Pawn instigatedBy, Vector hitlocation,
 						Vector momentum, name damageType)
 	{
 		TakeDamageBase(Damage, instigatedBy, hitlocation, momentum, damageType, false);
@@ -13768,7 +13799,7 @@ state Stunned
 Begin:
 	Acceleration = vect(0, 0, 0);
 	PlayStunned();
-	Sleep(15);
+	Sleep(StunTimerTester);
 	if (HasNextState())
 		GotoNextState();
 	else
@@ -13888,7 +13919,7 @@ Begin:
 // Fall!
 // ----------------------------------------------------------------------
 
-state FallingState 
+state FallingState
 {
 	ignores Bump, Hitwall, WarnTarget, ReactToInjury;
 
@@ -14067,20 +14098,20 @@ Begin:
 	}
 	if (bUpAndOut) //water jump
 	{
-		if ( !bIsPlayer ) 
+		if ( !bIsPlayer )
 		{
 			DesiredRotation = Rotation;
 			DesiredRotation.Pitch = 0;
-			Velocity.Z = 440; 
+			Velocity.Z = 440;
 		}
 	}
 	else
-	{	
+	{
 		if (Region.Zone.bWaterZone)
 		{
 			SetPhysics(PHYS_Swimming);
 			GotoNextState();
-		}	
+		}
 		if ( !bJumpOffPawn )
 			AdjustJump();
 		else
@@ -14090,14 +14121,14 @@ PlayFall:
 		PlayFalling();
 		FinishAnim();
 	}
-	
+
 	if (Physics != PHYS_Falling)
 		Goto('Done');
 	Sleep(2.0);
 	Goto('LongFall');
 
 Ducking:
-		
+
 }
 
 
@@ -14114,7 +14145,7 @@ function PlayHit(float Damage, vector HitLocation, name damageType, vector Momen
 function PlayHitAnim(vector HitLocation, float Damage)
 {
 	log("ERROR - PlayHitAnim should not be called!");
-} 
+}
 
 function PlayDeathHit(float Damage, vector HitLocation, name damageType, vector Momentum)
 {
@@ -14179,7 +14210,7 @@ defaultproperties
      AgitationDecayRate=0.050000
      FearSustainTime=25.000000
      FearDecayRate=0.500000
-     SurprisePeriod=2.000000
+     SurprisePeriod=0.800000
      SightPercentage=0.500000
      bHasShadow=True
      ShadowScale=1.000000
@@ -14214,7 +14245,7 @@ defaultproperties
      AccelRate=200.000000
      JumpZ=120.000000
      MinHitWall=9999999827968.000000
-     HearingThreshold=0.150000
+     HearingThreshold=0.1000000
      Skill=2.000000
      AIHorizontalFov=160.000000
      AspectRatio=2.300000
@@ -14222,4 +14253,5 @@ defaultproperties
      BindName="ScriptedPawn"
      FamiliarName="DEFAULT FAMILIAR NAME - REPORT THIS AS A BUG"
      UnfamiliarName="DEFAULT UNFAMILIAR NAME - REPORT THIS AS A BUG"
+	   StunTimerTester=15
 }
