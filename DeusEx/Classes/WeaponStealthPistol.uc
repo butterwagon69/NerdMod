@@ -25,16 +25,17 @@ defaultproperties
      NoiseLevel=0.010000
      EnviroEffective=ENVEFF_Air
      Concealability=CONC_All
-     ShotTime=0.150000
+     //ShotTime=0.150000
+	 ShotTime=0.050000
      reloadTime=1.500000
      HitDamage=8
      maxRange=4800
      AccurateRange=2400
-     BaseAccuracy=0.800000
+     BaseAccuracy=0.250000
      bCanHaveScope=True
      ScopeFOV=25
      bCanHaveLaser=True
-     recoilStrength=0.100000
+     recoilStrength=4.3
      mpReloadTime=1.500000
      mpHitDamage=12
      mpBaseAccuracy=0.200000
@@ -45,6 +46,7 @@ defaultproperties
      bCanHaveModReloadCount=True
      bCanHaveModAccurateRange=True
      bCanHaveModReloadTime=True
+	 bCanHaveModRecoilStrength=True
      AmmoName=Class'DeusEx.Ammo10mm'
      PickupAmmoCount=10
      bInstantHit=True
@@ -70,4 +72,7 @@ defaultproperties
      CollisionRadius=8.000000
      CollisionHeight=0.800000
 		 fFireAnimFactor=15.0
+		 handleAbility=1.0
+		 aimAbility=0.7
+		 bCanShootFaster=False
 }

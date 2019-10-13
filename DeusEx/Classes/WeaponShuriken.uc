@@ -27,7 +27,7 @@ defaultproperties
      EnemyEffective=ENMEFF_Organic
      EnviroEffective=ENVEFF_AirVacuum
      Concealability=CONC_Visual
-     ShotTime=0.200000
+     ShotTime=1.500000
      reloadTime=0.200000
      HitDamage=15
      maxRange=1280

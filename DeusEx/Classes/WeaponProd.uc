@@ -42,8 +42,8 @@ defaultproperties
      mpMaxRange=80
      mpReloadCount=4
      AmmoName=Class'DeusEx.AmmoBattery'
-     ReloadCount=4
-     PickupAmmoCount=4
+     ReloadCount=100
+     PickupAmmoCount=100
      bInstantHit=True
      FireOffset=(X=-21.000000,Y=12.000000,Z=19.000000)
      shakemag=20.000000
@@ -66,4 +66,5 @@ defaultproperties
      Mesh=LodMesh'DeusExItems.ProdPickup'
      CollisionRadius=8.750000
      CollisionHeight=1.350000
+	 ammoConsumption=25
 }

@@ -57,9 +57,9 @@ defaultproperties
      HitDamage=25
      maxRange=1600
      AccurateRange=800
-     BaseAccuracy=0.800000
+     BaseAccuracy=0.100000
      bCanHaveScope=True
-     ScopeFOV=15
+     ScopeFOV=35
      bCanHaveLaser=True
      bHasSilencer=True
      AmmoNames(0)=Class'DeusEx.AmmoDartPoison'
@@ -106,4 +106,7 @@ defaultproperties
      CollisionRadius=8.000000
      CollisionHeight=1.000000
      Mass=15.000000
+	 recoilStrength=5.00
+	 handleAbility=1.5
+	 aimAbility=1.5
 }

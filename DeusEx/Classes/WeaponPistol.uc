@@ -30,11 +30,11 @@ defaultproperties
      HitDamage=14
      maxRange=4800
      AccurateRange=2400
-     BaseAccuracy=0.700000
+     BaseAccuracy=0.1000000
      bCanHaveScope=True
      ScopeFOV=25
      bCanHaveLaser=True
-     recoilStrength=0.300000
+     recoilStrength=4.300000
      mpReloadTime=2.000000
      mpHitDamage=20
      mpBaseAccuracy=0.200000
@@ -42,6 +42,7 @@ defaultproperties
      mpMaxRange=1200
      mpReloadCount=9
      bCanHaveModBaseAccuracy=True
+	   bCanHaveSilencer=True
      bCanHaveModReloadCount=True
      bCanHaveModAccurateRange=True
      bCanHaveModReloadTime=True
@@ -70,4 +71,6 @@ defaultproperties
      Mesh=LodMesh'DeusExItems.GlockPickup'
      CollisionRadius=7.000000
      CollisionHeight=1.000000
+		 handleAbility=1.5
+		 aimAbility=0.8
 }

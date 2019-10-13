@@ -89,4 +89,6 @@ defaultproperties
      CollisionRadius=27.000000
      CollisionHeight=6.600000
      Mass=50.000000
+	 handleAbility=0.25
+	 aimAbility=2.5
 }

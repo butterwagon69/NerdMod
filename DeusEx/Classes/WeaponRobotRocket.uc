@@ -18,6 +18,7 @@ defaultproperties
      AIMaxRange=2000.000000
      AmmoName=Class'DeusEx.AmmoRocketRobot'
      PickupAmmoCount=20
+		 BaseAccuracy=0.100000
      ProjectileClass=Class'DeusEx.RocketRobot'
      PlayerViewOffset=(Y=-46.000000,Z=36.000000)
 }

@@ -25,19 +25,20 @@ defaultproperties
      GoverningSkill=Class'DeusEx.SkillWeaponRifle'
      EnviroEffective=ENVEFF_Air
      bAutomatic=True
-     ShotTime=0.700000
+     ShotTime=0.500000
      reloadTime=4.500000
-     HitDamage=4
+     HitDamage=3
+	 HitDamageMultiplier=0.800000
      maxRange=2400
      AccurateRange=1200
-     BaseAccuracy=0.800000
+     BaseAccuracy=0.200000
      AmmoNames(0)=Class'DeusEx.AmmoShell'
      AmmoNames(1)=Class'DeusEx.AmmoSabot'
      AreaOfEffect=AOE_Cone
-     recoilStrength=0.700000
+     //recoilStrength=1.000000
      mpReloadTime=0.500000
      mpHitDamage=5
-     mpBaseAccuracy=0.200000
+     mpBaseAccuracy=0.300000
      mpAccurateRange=1800
      mpMaxRange=1800
      mpReloadCount=12
@@ -74,4 +75,9 @@ defaultproperties
      CollisionRadius=15.000000
      CollisionHeight=8.000000
      Mass=30.000000
+		 bCanHaveLaser=True
+		 handleAbility=3
+		 aimAbility=1.5
+		 recoilStrength=20.00
+		 bCanHaveModAccurateRange=True
 }

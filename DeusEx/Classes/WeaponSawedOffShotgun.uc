@@ -28,14 +28,14 @@ defaultproperties
      Concealability=CONC_Visual
      ShotTime=0.300000
      reloadTime=3.000000
-     HitDamage=5
+     HitDamage=4
      maxRange=2400
      AccurateRange=1200
-     BaseAccuracy=0.600000
+     BaseAccuracy=0.350000
      AmmoNames(0)=Class'DeusEx.AmmoShell'
      AmmoNames(1)=Class'DeusEx.AmmoSabot'
      AreaOfEffect=AOE_Cone
-     recoilStrength=0.500000
+     recoilStrength=20.000
      mpReloadTime=0.500000
      mpHitDamage=9
      mpBaseAccuracy=0.200000
@@ -74,4 +74,8 @@ defaultproperties
      CollisionRadius=12.000000
      CollisionHeight=0.900000
      Mass=15.000000
+		 bCanHaveLaser=True
+		 handleAbility=4
+		 aimAbility=2.0
+		 bCanHaveModAccurateRange=True
 }

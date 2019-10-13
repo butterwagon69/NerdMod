@@ -18,6 +18,7 @@ defaultproperties
      AIMaxRange=2000.000000
      AmmoName=Class'DeusEx.AmmoRocketMini'
      PickupAmmoCount=20
+		 BaseAccuracy=0.100000
      ProjectileClass=Class'DeusEx.RocketMini'
      PlayerViewOffset=(Y=-24.000000,Z=-12.000000)
 }
