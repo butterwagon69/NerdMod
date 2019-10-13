@@ -134,7 +134,7 @@ event DrawWindow(GC gc)
 		}
 
 		// Now, let's draw the targetting information
-		if (weapon.bCanTrack)
+		if (weapon.bCanTrack || weapon.bLasing)
 		{
 			if (weapon.LockMode == LOCK_Locked)
 				gc.SetTextColor(colLockedText);
