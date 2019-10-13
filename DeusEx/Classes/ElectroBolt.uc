@@ -77,7 +77,6 @@ function SpawnChildren()
 	// 			  emitter.randomAngle = 8192; // 32768;
 	// 			  emitter.damageAmount = 6;
 	// 			  emitter.TimeLimit = 10;
-	// 				BroadcastMessage("Target: " $ Target);
 	// 		}
 	// 	}
 	// }

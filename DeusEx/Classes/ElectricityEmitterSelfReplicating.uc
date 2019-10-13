@@ -29,7 +29,6 @@ function ProcessActorHit(vector HitLocation, actor HitActor)
 		&& (ScriptedPawn(HitActor) != None)
 		)
 	{
-		BroadcastMessage("Spawned!");
 		numchildren += 1;
 		EmitterSpawner = Spawn(
 			class'SpawnerElectricityEmitterSelfReplicating',
@@ -58,16 +57,8 @@ function ProcessActorHit(vector HitLocation, actor HitActor)
 		// emitter.TimeLimit = TimeLimit;
 		// emitter.AttachedTo = HitActor;
 		// emitter.bAttached = True;
-		// BroadcastMessage("HitActor: " $ HitActor);
 		Destroy();
 	} else {
-		BroadcastMessage(
-			"ZAP! branchcount: " $ branchcount
-			$ " maxbranches: " $ maxbranches
-			$ " distance: " $ distance
-			$ " numchildren: " $ numchildren
-			$ " maxchildren: " $ maxchildren
-		);
 	}
 }
 
@@ -76,7 +67,6 @@ simulated function Tick(float deltaTime)
 {
 	Super.Tick(deltaTime);
 	if (Target == None){
-		BroadcastMessage("Target Destroyed!");
 		randomAngle = 32768;
 	}
 	SetRotation(Rotator(Target.Location - Location));

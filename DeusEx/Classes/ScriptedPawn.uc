@@ -10478,7 +10478,6 @@ State Seeking
 	}
 
 Begin:
-	//self.BroadcastMessage("Seeking::Begin");
 	WaitForLanding();
 	PlayWaiting();
 	if ((Weapon != None) && bKeepWeaponDrawn && (Weapon.CockingSound != None) && !bSeekPostCombat)
@@ -10488,7 +10487,6 @@ Begin:
 		Goto('DoneSeek');
 
 GoToLocation:
-	// self.BroadcastMessage("Seeking::GoToLocation");
 	bInterruptSeek = true;
 	Acceleration = vect(0,0,0);
 
@@ -10551,7 +10549,6 @@ GoToLocation:
 	}
 
 TurnToLocation:
-	// self.BroadcastMessage("Seeking::TurnToLocation");
 	Acceleration = vect(0,0,0);
 	PlayTurning();
 	if ((SeekType == SEEKTYPE_Guess) && bSeekLocation)
@@ -10571,7 +10568,6 @@ TurnToLocation:
 	Sleep(0); // Mitigates crashing
 
 LookAround:
-	// self.BroadcastMessage("Seeking::LookAround");
 	if (bCanTurnHead)
 	{
 		if (FRand() < 0.5)
@@ -10621,13 +10617,11 @@ LookAround:
 	}
 
 FindAnotherPlace:
-	// self.BroadcastMessage("Seeking::FindAnotherPlace");
 	SeekLevel--;
 	if (PickDestination())
 		Goto('GoToLocation');
 
 DoneSeek:
-	// self.BroadcastMessage("Seeking::DoneSeek");
 	if (bSeekPostCombat)
 		PlayTargetLostSound();
 	else

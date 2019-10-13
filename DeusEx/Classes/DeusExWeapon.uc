@@ -169,7 +169,7 @@ var bool bNeedToSetMPPickupAmmo;
 
 var bool	bDestroyOnFinish;
 
-var float	mpReloadTime;			
+var float	mpReloadTime;
 var int		mpHitDamage;
 var float	mpBaseAccuracy;
 var int		mpAccurateRange;
@@ -249,7 +249,7 @@ replication
 
     // Functions client calls on server
     reliable if ( Role < ROLE_Authority )
-        ReloadAmmo, LoadAmmo, CycleAmmo, LaserOn, LaserOff, LaserToggle, ScopeOn, ScopeOff, ScopeToggle, PropagateLockState, ServerForceFire, 
+        ReloadAmmo, LoadAmmo, CycleAmmo, LaserOn, LaserOff, LaserToggle, ScopeOn, ScopeOff, ScopeToggle, PropagateLockState, ServerForceFire,
 		  ServerGenerateBullet, ServerGotoFinishFire, ServerHandleNotify, StartFlame, StopFlame, ServerDoneReloading, DestroyOnFinish;
 
     // Functions Server calls in client
@@ -284,7 +284,7 @@ simulated function SetLockMode(ELockMode NewMode)
 
 // ---------------------------------------------------------------------
 // PlayLockSound()
-// Because playing a sound from a simulated function doesn't play it 
+// Because playing a sound from a simulated function doesn't play it
 // server side.
 // ---------------------------------------------------------------------
 function PlayLockSound()
@@ -722,13 +722,6 @@ simulated function float AdjustAimRecoil(float recoil, float deltaTime){
 	// Only the player has to deal with muzzle climb
 	// Pawns just lose accuracy because they aren't smart enough
 	if (DeusExPlayer(Owner) != None){
-		// pitchAdjust = recoil * Rand(4096);
-		// currentPitchRate -= pitchAdjust;
-		// DeusExPlayer(Owner).ViewRotation.Yaw += deltaTime * (Rand(4096) - 2048) * recoil;
-		// DeusExPlayer(Owner).ViewRotation.Pitch -= deltaTime * currentPitchRate;
-		// Owner.BroadcastMessage(recoil);
-
-
 	}
 	else if  (Pawn(Owner) != None){
 		currentPitchRate += recoil * (Rand(4096) - 2048);
@@ -1692,13 +1685,10 @@ simulated function Tick(float deltaTime)
 	// if (recoil < 0.0)
 		// recoil = 0.0;
 	// if (bFiring && (AnimSequence == 'Shoot')){
-		// //Owner.BroadcastMessage("weaponSkill: " $ GetWeaponSkill());
 	// }
 	// // simulate recoil while firing
 	if (bFiring && (recoilStrength > 0.0))
 	{
-		//Owner.BroadcastMessage("CalculateAccuracy: " $ CalculateAccuracy());
-		//Owner.BroadcastMessage("CalculateAimEnergy: " $ CalculateAimEnergy());
 		recoilEffect = FClamp(recoilEffect + recoilStrength, 0, 1);
 		// New Stuff
 		AdjustAimRecoil(recoilStrength, deltaTime);
@@ -2875,11 +2865,7 @@ simulated function Projectile ProjectileFire(class<projectile> ProjClass, float 
 				}
 			}
 		}
-		// Owner.BroadcastMessage("Default Range: " $ float(Default.AccurateRange));
-		// Owner.BroadcastMessage("Current Range: " $ float(AccurateRange));
-		// Owner.BroadcastMessage("Mult: " $ mult);
 		proj.setSpeed(proj.Default.Speed * mult);
-		// Owner.BroadcastMessage("Speed: " $ proj.Speed);
 
 	}
 
@@ -2898,7 +2884,6 @@ simulated function TraceFire( float Accuracy )
 	local float dist, alpha, degrade;
 	local int i, numSlugs;
 	local float volume, radius;
-	// Owner.BroadcastMessage("TraceFire");
 	// make noise if we are not silenced
 	if (!bHasSilencer && !bHandToHand)
 	{
@@ -2931,13 +2916,11 @@ simulated function TraceFire( float Accuracy )
 	if (numSlugs > 1)
 	{
 		Accuracy *= float(Default.AccurateRange) / float(AccurateRange);
-		BroadcastMessage("Accuracy: " $ Accuracy);
 	}
 
 
 	for (i=0; i<numSlugs; i++)
 	{
-		// Owner.BroadcastMessage("I:" $ i);
       // If we have multiple slugs, then lower our accuracy a bit after the first slug so the slugs DON'T all go to the same place
       if ((i > 0) && (Level.NetMode != NM_Standalone) && !(bHandToHand))
          if (Accuracy < MinSpreadAcc)
@@ -3001,10 +2984,8 @@ simulated function int GetHitDamage(){
 	ammo = DeusExAmmo(AmmoType);
 	HitDamageSpecial = ammo.HitDamageSpecial;
 	if (HitDamageSpecial != 0){
-		// Owner.BroadcastMessage("HitDamange: " $ HitDamageMultiplier * HitDamageSpecial);
 		return int(HitDamageMultiplier * HitDamageSpecial);
 	} else {
-		// Owner.BroadcastMessage("HitDamange: " $ HitDamage);
 		return HitDamage;
 	}
 }

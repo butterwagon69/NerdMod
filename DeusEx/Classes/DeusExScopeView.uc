@@ -20,7 +20,7 @@ var int   desiredFOV;
 event InitWindow()
 {
 	Super.InitWindow();
-	
+
 	// Get a pointer to the player
 	player = DeusExPlayer(GetRootWindow().parentPawn);
 
@@ -132,7 +132,7 @@ event DrawWindow(GC gc)
 	local float logDist, distMult;
 	local int firstDigit;
 	local float majTickDistance, minTickDistance;
-	
+
 	weap = DeusExWeapon(Player.inHand);
 	speed = weap.ProjectileSpeed;
 	Super.DrawWindow(gc);
@@ -168,7 +168,7 @@ event DrawWindow(GC gc)
 		gc.DrawPattern(toX, fromY, fromX, scopeHeight, 0, 0, Texture'Solid');
 	}
 	// Draw the center scope bitmap
-	// Use the Header Text color 
+	// Use the Header Text color
 
 //	gc.SetStyle(DSTY_Masked);
 	if (bBinocs)
@@ -189,8 +189,8 @@ event DrawWindow(GC gc)
 		{
 
 			//gc.DrawStretchedTexture(fromX, fromY, scopeWidth, scopeHeight, 0, 0, Texture'HUDScopeCrosshair');
-			// gc.DrawStretchedTexture(fromX, fromY, 
-				// scopeWidth, scopeHeight, 
+			// gc.DrawStretchedTexture(fromX, fromY,
+				// scopeWidth, scopeHeight,
 				// 0, 0,
 				// 256, 256,
 				// Texture'HUDScopeCrosshair'
@@ -211,7 +211,6 @@ event DrawWindow(GC gc)
 				maxY = height * 0.75;
 				maxAng = 0.5 * desiredFOV * (maxY / (height)) / 57.295;
 				maxDist = Tan(maxAng) * 2 * speed * speed / g;
-				// player.BroadcastMessage("maxDist: " $ maxDist / 16.0);
 				// Tried to get this to work with logariths and rounding
 				// but the round function doesn't seem to work.
 				// We only need to check a few orders of magnitude.
@@ -263,12 +262,8 @@ event DrawWindow(GC gc)
 				minTickDistance *= 16.0;
 				tickCount = (int(maxDist) / int(majTickDistance));
 				maxDist = tickCount * int(majTickDistance);
-				// player.BroadcastMessage("tickCount: " $ tickCount);
-
-				// player.BroadcastMessage("distMult: " $ distMult);
-				// player.BroadcastMessage("majTickDistance: " $ majTickDistance);
 				for  (i=1; i<=tickCount; i++){
-					
+
 					dist = (maxDist * i) / tickCount;
 					ang =  ATan(0.5 * g / (speed * speed) * dist); // radians
 					// Get the actual position on the screen
@@ -282,7 +277,6 @@ event DrawWindow(GC gc)
 					}
 					yLast = y;
 					gc.DrawBox((width - tickWidth) / 2.0, y , tickWidth, 1, 0, 0, 1, Texture'Solid');
-					//player.BroadcastMessage("y: " $ y);
 					gc.DrawText((width + tickWidth) / 2.0, y-4, 20, 9, int(dist / 16));
 					// gc.DrawText((width + tickWidth) / 2.0 + 20, y, 20, 9, ((ang * 57.295)));
 					// gc.DrawText((width + tickWidth) / 2.0 + 40, y, 20, 9, speed);
@@ -291,21 +285,21 @@ event DrawWindow(GC gc)
 			}
 			gc.SetStyle(DSTY_Modulated);
 			//gc.DrawTexture(fromX, fromY, scopeWidth, scopeHeight, 0, 0, Texture'HUDScopeView');
-			gc.DrawStretchedTexture(fromX, fromY, 
-				scopeWidth, scopeHeight, 
-				0, 0, 
+			gc.DrawStretchedTexture(fromX, fromY,
+				scopeWidth, scopeHeight,
+				0, 0,
 				256, 256,
 				Texture'HUDScopeView'
 			);
 
-			
+
 			// for (i=1; i>=0; i--)
 			// {
 				// // Top vertical line
 				// gc.DrawBox(x+i, y-mult-corner+i, 1, corner, 0, 0, 1, Texture'Solid');
 				// // Bottom Vertical line
 				// gc.DrawBox(x+i, y+mult+i, 1, corner, 0, 0, 1, Texture'Solid');
-				
+
 				// gc.DrawBox(x-(corner-1)/2+i, y-mult-corner+i, corner, 1, 0, 0, 1, Texture'Solid');
 				// gc.DrawBox(x-(corner-1)/2+i, y+mult+corner+i, corner, 1, 0, 0, 1, Texture'Solid');
 
@@ -316,7 +310,7 @@ event DrawWindow(GC gc)
 
 				// gc.SetTileColor(crossColor);
 			// }
-			
+
 		}
 		else
 		{

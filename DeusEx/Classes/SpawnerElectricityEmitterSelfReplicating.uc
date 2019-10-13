@@ -46,7 +46,6 @@ simulated function PreBeginPlay()
 simulated function Tick(float deltaTime)
 {
 	Super.Tick(deltaTime);
-  BroadcastMessage("Spawner Spawned! Branch: " $ branchcount);
   Destroy();
 }
 

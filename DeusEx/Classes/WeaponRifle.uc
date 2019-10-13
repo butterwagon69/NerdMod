@@ -103,15 +103,6 @@ simulated function ProcessTraceHit(Actor Other, Vector HitLocation, Vector HitNo
 		EndTrace = StartTrace + (FMax(1024, MaxRange) * vector(aimActual));
 
 		nextTarget = Pawn(Owner).TraceShot(NextHitLocation, NextHitNormal, EndTrace, StartTrace);
-		// BroadcastMessage("HitLocation: " $ HitLocation.X $ ", " $ HitLocation.Y $ ", " $ HitLocation.Z);
-		// BroadcastMessage("HitNormal: " $ HitNormal.X $ ", " $ HitNormal.Y $ ", " $ HitNormal.Z);
-		// BroadcastMessage("NextHitNormal: " $ NextHitNormal.X $ ", " $ NextHitNormal.Y $ ", " $ NextHitNormal.Z);
-		// BroadcastMessage("NextHitLocation: " $ NextHitLocation.X $ ", " $ NextHitLocation.Y $ ", " $ NextHitLocation.Z);
-		// BroadcastMessage("HitLocation: " $ HitLocation.X $ ", " $ HitLocation.Y $ ", " $ HitLocation.Z);
-		// BroadcastMessage("StartTrace: " $ StartTrace.X $ ", " $ StartTrace.Y $ ", " $ StartTrace.Z);
-		// BroadcastMessage("EndTrace: " $ EndTrace.X $ ", " $ EndTrace.Y $ ", " $ StartTrace.Z);
-		// BroadcastMessage("Other: " $ Other);
-		// BroadcastMessage("nextTarget" $ nextTarget);
 		if ((nextTarget == Level) || ((nextTarget != None) && nextTarget.IsA('Mover')))
 		{
 			Super.ProcessTraceHit(nextTarget, NextHitLocation, NextHitNormal, X, Y, Z);

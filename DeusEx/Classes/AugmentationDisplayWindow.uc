@@ -285,7 +285,7 @@ function RefreshMultiplayerKeys()
 function Tick(float deltaTime)
 {
 	// check for the drone ViewportWindow being constructed
-	if (Player.bSpyDroneActive && (Player.aDrone != None) && (winDrone == None) && 
+	if (Player.bSpyDroneActive && (Player.aDrone != None) && (winDrone == None) &&
 		(Player.PlayerIsClient() || (Player.Level.NetMode==NM_Standalone)) )
 	{
 		winDrone = ViewportWindow(NewChild(class'ViewportWindow'));
@@ -464,7 +464,7 @@ function DrawSpyDroneAugmentation(GC gc)
 	}
 	// Since drone is created on server, they is a delay in when it will actually show up on the client
 	// the flags dronecreated and drone referenced negotiate this timing
-	if ( !bDroneCreated )  	
+	if ( !bDroneCreated )
 	{
 		if (Player.aDrone == None)
 		{
@@ -688,7 +688,7 @@ function DrawMiscStatusMessages( GC gc )
 	if (( weap != None ) && ( weap.AmmoLeftInClip() == 0 ) && (weap.NumClips() == 0) )
 	{
 		if ( weap.IsA('WeaponLAM') ||
-			  weap.IsA('WeaponGasGrenade') || 
+			  weap.IsA('WeaponGasGrenade') ||
 			  weap.IsA('WeaponEMPGrenade') ||
 			  weap.IsA('WeaponShuriken') ||
 			  weap.IsA('WeaponLAW') )
@@ -721,7 +721,7 @@ function GetTargetReticleColor( Actor target, out Color xcolor )
 	local AutoTurret turret;
 	local bool bDM, bTeamDM;
 	local Vector dist;
-   local float SightDist;
+    local float SightDist;
 	local DeusExWeapon w;
 	local int team;
 	local String titleString;
@@ -741,7 +741,7 @@ function GetTargetReticleColor( Actor target, out Color xcolor )
 		if ( target.IsA('DeusExPlayer') && (target != player) )	// Other players IFF
 		{
 			if ( bTeamDM && (TeamDMGame(player.DXGame).ArePlayersAllied(DeusExPlayer(target),player)) )
-			{ 
+			{
 				xcolor = colGreen;
 				if ( (Player.mpMsgFlags & Player.MPFLAG_FirstSpot) != Player.MPFLAG_FirstSpot )
 					Player.MultiplayerNotifyMsg( Player.MPMSG_TeamSpot );
@@ -752,7 +752,7 @@ function GetTargetReticleColor( Actor target, out Color xcolor )
          SightDist = VSize(target.Location - Player.Location);
 
 			if ( ( bTeamDM && (TeamDMGame(player.DXGame).ArePlayersAllied(DeusExPlayer(target),player))) ||
-				  (target.Style != STY_Translucent) || (bVisionActive && (Sightdist <= visionLevelvalue)) )              
+				  (target.Style != STY_Translucent) || (bVisionActive && (Sightdist <= visionLevelvalue)) )
 			{
 				targetPlayerName = DeusExPlayer(target).PlayerReplicationInfo.PlayerName;
             // DEUS_EX AMSD Show health of enemies with the target active.
@@ -763,7 +763,7 @@ function GetTargetReticleColor( Actor target, out Color xcolor )
 				if (( w != None ) && ( xcolor != colGreen ))
 				{
 					dist = player.Location - target.Location;
-					if ( VSize(dist) > w.maxRange ) 
+					if ( VSize(dist) > w.maxRange )
 					{
 						if (!(( WeaponAssaultGun(w) != None ) && ( Ammo20mm(WeaponAssaultGun(w).AmmoType) != None )))
 						{
@@ -782,7 +782,7 @@ function GetTargetReticleColor( Actor target, out Color xcolor )
 		{
 			if ( ThrownProjectile(target).bDisabled )
 				xcolor = colWhite;
-			else if ( (bTeamDM && (ThrownProjectile(target).team == player.PlayerReplicationInfo.team)) || 
+			else if ( (bTeamDM && (ThrownProjectile(target).team == player.PlayerReplicationInfo.team)) ||
 				(player == DeusExPlayer(target.Owner)) )
 				xcolor = colGreen;
 			else
@@ -1141,7 +1141,7 @@ function DrawTargetAugmentation(GC gc)
 					if (target.IsA('Pawn'))
 					{
 						str = msgWeapon;
-	
+
 						if (Pawn(target).Weapon != None)
 							str = str @ target.GetItemName(String(Pawn(target).Weapon.Class));
 						else
@@ -1238,7 +1238,7 @@ function DrawVisionAugmentation(GC gc)
          gc.DrawPattern(0, 0, width, height, 0, 0, Texture'VisionBlue');
          gc.SetStyle(DSTY_Translucent);
       }
-      
+
 
 		// adjust for the player's eye height
 		loc = Player.Location;
@@ -1260,8 +1260,8 @@ function DrawVisionAugmentation(GC gc)
                //If within range of vision aug bit
                if ( ( ((Player.Level.Netmode != NM_Standalone) && (dist <= (visionLevelvalue / 2))) ||
                       ((Player.Level.Netmode == NM_Standalone) && (dist <= (visionLevelValue)))        ) && (IsHeatSource(A)))
-               {           
-                  VisionTargetStatus = GetVisionTargetStatus(A);               
+               {
+                  VisionTargetStatus = GetVisionTargetStatus(A);
                   SetSkins(A, oldSkins);
                   gc.DrawActor(A, False, False, True, 1.0, 2.0, None);
                   ResetSkins(A, oldSkins);
@@ -1269,10 +1269,10 @@ function DrawVisionAugmentation(GC gc)
                else if ((Player.Level.Netmode != NM_Standalone) && (GetVisionTargetStatus(A) == VISIONENEMY) && (A.Style == STY_Translucent))
                {
                   //DEUS_EX AMSD In multiplayer, if looking at a cloaked enemy player within range (greater than see through walls)
-                  //(If within walls radius he'd already have been seen.               
+                  //(If within walls radius he'd already have been seen.
                   if ( (dist <= (visionLevelvalue)) && (Player.LineOfSightTo(A,true)) )
                   {
-                     VisionTargetStatus = GetVisionTargetStatus(A);               
+                     VisionTargetStatus = GetVisionTargetStatus(A);
                      SetSkins(A, oldSkins);
                      gc.DrawActor(A, False, False, True, 1.0, 2.0, None);
                      ResetSkins(A, oldSkins);
@@ -1280,9 +1280,9 @@ function DrawVisionAugmentation(GC gc)
                }
                else if (Player.LineOfSightTo(A,true))
                {
-                  VisionTargetStatus = GetVisionTargetStatus(A);               
+                  VisionTargetStatus = GetVisionTargetStatus(A);
                   SetSkins(A, oldSkins);
-                  
+
                   if ((Player.Level.NetMode == NM_Standalone) || (dist < VisionLevelValue * 1.5) || (VisionTargetStatus != VISIONENEMY))
                   {
                      DrawGlow = 2.0;
@@ -1295,7 +1295,7 @@ function DrawVisionAugmentation(GC gc)
                      //DrawGlow = FMax(DrawGlow,A.ScaleGlow);
                      // Set a minimum.
                      DrawGlow = FMax(DrawGlow,0.15);
-                  }                  
+                  }
                   gc.DrawActor(A, False, False, True, 1.0, DrawGlow, None);
                   ResetSkins(A, oldSkins);
                }
@@ -1304,17 +1304,17 @@ function DrawVisionAugmentation(GC gc)
             {
                BrightDot = Normal(Vector(Player.ViewRotation)) dot Normal(A.Location - Player.Location);
                dist = VSize(A.Location - Player.Location);
-               
+
                if (dist > 3000)
                   DrawGlow = 0;
                else if (dist < 300)
                   DrawGlow = 1;
                else
                   DrawGlow = ( 3000 - dist ) / ( 3000 - 300 );
-               
+
                // Calculate view angle in radians.
                RadianView = (Player.FovAngle / 180) * 3.141593;
-               
+
                if ((BrightDot >= Cos(RadianView)) && (DrawGlow > 0.2) && (BrightDot * DrawGlow * 0.9 > 0.2))  //DEUS_EX AMSD .75 is approximately at our view angle edge.
                {
                   VisionBlinder = A;
@@ -1322,7 +1322,7 @@ function DrawVisionAugmentation(GC gc)
                   NewFog = vect(1000,1000,900) * BrightDot * DrawGlow * 0.9;
                   OldFlash = player.DesiredFlashScale;
                   OldFog = player.DesiredFlashFog * 1000;
-                  
+
                   // Don't add increase the player's flash above the current newflash.
                   NewFlash = FMax(0,NewFlash - OldFlash);
                   NewFog.X = FMax(0,NewFog.X - OldFog.X);
@@ -1388,7 +1388,6 @@ function bool IsHeatSource(Actor A)
       return False;
    }
 	else if (A.IsA('DeusExCarcass'))
-		return True;   
 		return True;
 	else if (A.IsA('FleshFragment'))
 		return True;
@@ -1420,7 +1419,7 @@ function Texture GetGridTexture(Texture tex)
 		return Texture'BlackMaskTex';
 	else if (tex == Texture'PinkMaskTex')
 		return Texture'BlackMaskTex';
-	else if (VisionTargetStatus == VISIONENEMY)         
+	else if (VisionTargetStatus == VISIONENEMY)
       return Texture'Virus_SFX';
    else if (VisionTargetStatus == VISIONALLY)
 		return Texture'Wepn_Prifle_SFX';
@@ -1432,7 +1431,7 @@ function Texture GetGridTexture(Texture tex)
 
 // ----------------------------------------------------------------------
 // SetSkins()
-// 
+//
 // copied from ActorDisplayWindow
 // ----------------------------------------------------------------------
 
@@ -1455,7 +1454,7 @@ function SetSkins(Actor actor, out Texture oldSkins[9])
 
 // ----------------------------------------------------------------------
 // ResetSkins()
-// 
+//
 // copied from ActorDisplayWindow
 // ----------------------------------------------------------------------
 
@@ -1496,22 +1495,22 @@ function int GetVisionTargetStatus(Actor Target)
 
    if (Target == None)
       return VISIONNEUTRAL;
-   
+
    if (player.Level.NetMode == NM_Standalone)
       return VISIONNEUTRAL;
 
    if (target.IsA('DeusExPlayer'))
-   {     
+   {
       if (target == player)
          return VISIONNEUTRAL;
-      
+
       TeamGame = TeamDMGame(player.DXGame);
       // In deathmatch, all players are hostile.
       if (TeamGame == None)
          return VISIONENEMY;
-      
+
       PlayerTarget = DeusExPlayer(Target);
-      
+
       if (TeamGame.ArePlayersAllied(PlayerTarget,Player))
          return VISIONALLY;
       else
@@ -1523,7 +1522,7 @@ function int GetVisionTargetStatus(Actor Target)
          return GetVisionTargetStatus(target.Owner);
       else if ((AutoTurret(Target).bDisabled))
          return VISIONNEUTRAL;
-      else if (AutoTurret(Target).safetarget == Player) 
+      else if (AutoTurret(Target).safetarget == Player)
          return VISIONALLY;
       else if ((Player.DXGame.IsA('TeamDMGame')) && (AutoTurret(Target).team == -1))
          return VISIONNEUTRAL;
