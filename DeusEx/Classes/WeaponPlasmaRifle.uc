@@ -19,6 +19,26 @@ simulated function PreBeginPlay()
 	}
 }
 
+simulated function SetAltProjectileParams(int ammoNum){
+	ProjectileClass = ProjectileNames[ammoNum];
+	ProjectileSpeed = ProjectileClass.Default.Speed * GetDamageMult();
+	bProjectileGravity = !(class<DeusExProjectile>(ProjectileClass).Default.bIgnoresGravity);
+	if (ammoNum == 0)
+	{
+		ammoConsumption = Default.ammoConsumption;
+		ReloadCount = Default.ReloadCount;
+		LowAmmoWaterMark = Default.LowAmmoWaterMark;
+	} 
+	else if (ammoNum == 1)
+	{
+		ammoConsumption = 100;
+		ReloadCount = 100;
+		LowAmmoWaterMark = 100;
+	}
+}
+
+
+
 defaultproperties
 {
      LowAmmoWaterMark=12
@@ -28,13 +48,13 @@ defaultproperties
      HitDamage=35
      maxRange=24000
      AccurateRange=14400
-     BaseAccuracy=0.600000
+     BaseAccuracy=2.000000
      bCanHaveScope=True
      ScopeFOV=20
      bCanHaveLaser=True
      AreaOfEffect=AOE_Cone
      bPenetrating=False
-     recoilStrength=0.300000
+     recoilStrength=10.000
      mpReloadTime=0.500000
      mpHitDamage=20
      mpBaseAccuracy=0.500000
@@ -47,9 +67,13 @@ defaultproperties
      bCanHaveModReloadTime=True
      bCanHaveModRecoilStrength=True
      AmmoName=Class'DeusEx.AmmoPlasma'
-     ReloadCount=12
-     PickupAmmoCount=12
+     AmmoNames(0)=Class'DeusEx.AmmoPlasma'
+     AmmoNames(1)=Class'DeusEx.AmmoBattery'
+     ReloadCount=16
+     PickupAmmoCount=32
      ProjectileClass=Class'DeusEx.PlasmaBolt'
+     ProjectileNames(0)=Class'DeusEx.PlasmaBolt'
+     ProjectileNames(1)=Class'DeusEx.ElectroBolt'
      shakemag=50.000000
      FireSound=Sound'DeusExSounds.Weapons.PlasmaRifleFire'
      AltFireSound=Sound'DeusExSounds.Weapons.PlasmaRifleReloadEnd'
@@ -66,7 +90,7 @@ defaultproperties
      largeIcon=Texture'DeusExUI.Icons.LargeIconPlasmaRifle'
      largeIconWidth=203
      largeIconHeight=66
-     invSlotsX=4
+     invSlotsX=2
      invSlotsY=2
      Description="An experimental weapon that is currently being produced as a series of one-off prototypes, the plasma gun superheats slugs of magnetically-doped plastic and accelerates the resulting gas-liquid mix using an array of linear magnets. The resulting plasma stream is deadly when used against slow-moving targets."
      beltDescription="PLASMA"
@@ -74,5 +98,9 @@ defaultproperties
      CollisionRadius=15.600000
      CollisionHeight=5.200000
      Mass=50.000000
+	 ShotTime=0.2
 	 fFireAnimFactor=5.0
+	 handleAbility=2.0
+	 aimAbility=2.0
+	 ammoConsumption=1
 }
