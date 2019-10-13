@@ -97,4 +97,5 @@ defaultproperties
      BindName="MIB"
      FamiliarName="Man In Black"
      UnfamiliarName="Man In Black"
+	 BaseAccuracy=-0.200000
 }

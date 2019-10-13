@@ -50,6 +50,7 @@ function GotoDisabledState(name damageType, EHitLocation hitPos, int Damage)
 
 defaultproperties
 {
+	 BaseAccuracy=-0.500000
      CarcassType=Class'DeusEx.WaltonSimonsCarcass'
      WalkingSpeed=0.333333
      bImportant=True
