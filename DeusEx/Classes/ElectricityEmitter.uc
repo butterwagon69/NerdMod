@@ -14,6 +14,7 @@ var() bool bInitiallyOn;			// is this initially on?
 var() bool bFlicker;				// randomly flicker on and off?
 var() float flickerTime;			// how often to check for random flicker?
 var() bool bEmitLight;				// should I cast light, also?
+var name damageType;			// type of damage that this projectile does
 
 var Actor lastHitActor;
 var float lastDamageTime;
@@ -61,13 +62,18 @@ function CalcTrace(float deltaTime)
 		// shock whatever gets in the beam
 		if ((HitActor != None) && (lastDamageTime >= damageTime))
 		{
-			HitActor.TakeDamage(damageAmount, Instigator, HitLocation, vect(0,0,0), 'Shocked');
-			lastDamageTime = 0;
+			ProcessActorHit(HitLocation, HitActor);
 		}
 
 		if (LaserIterator(RenderInterface) != None)
 			LaserIterator(RenderInterface).AddBeam(0, Location, Rotation + rot, VSize(Location - HitLocation));
 	}
+}
+
+function ProcessActorHit(vector HitLocation, actor HitActor)
+{
+	HitActor.TakeDamage(damageAmount, Instigator, HitLocation, vect(0,0,0), damageType);
+	lastDamageTime = 0;
 }
 
 function TurnOn()
@@ -180,4 +186,5 @@ defaultproperties
      LightHue=150
      LightSaturation=32
      LightRadius=6
+	 damageType=Shocked
 }
