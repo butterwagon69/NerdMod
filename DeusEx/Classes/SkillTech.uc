@@ -43,9 +43,9 @@ defaultproperties
      SkillName="Electronics"
      Description="By studying electronics and its practical application, agents can more efficiently bypass a number of security systems using multitools.|n|nUNTRAINED: An agent can bypass security systems.|n|nTRAINED: The efficiency with which an agent bypasses security increases slightly.|n|nADVANCED: The efficiency with which an agent bypasses security increases moderately.|n|nMASTER: An agent encounters almost no security systems of any challenge."
      SkillIcon=Texture'DeusExUI.UserInterface.SkillIconTech'
-     cost(0)=1800
-     cost(1)=3600
-     cost(2)=6000
+     cost(0)=900
+     cost(1)=1800
+     cost(2)=2400
      LevelValues(0)=0.100000
      LevelValues(1)=0.250000
      LevelValues(2)=0.400000

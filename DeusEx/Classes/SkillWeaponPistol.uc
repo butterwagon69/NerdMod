@@ -45,7 +45,7 @@ defaultproperties
      cost(0)=1575
      cost(1)=3150
      cost(2)=5250
-     LevelValues(1)=-0.100000
-     LevelValues(2)=-0.250000
+     LevelValues(1)=-0.200000
+     LevelValues(2)=-0.350000
      LevelValues(3)=-0.500000
 }
