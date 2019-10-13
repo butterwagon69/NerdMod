@@ -1,0 +1,9 @@
+*
+!DeusEx
+!DeusEx/Classes
+!DeusEx/Classes/*.uc
+!.gitignore
+!System/
+System/*
+!System/*.ini
+!System/*.txt
