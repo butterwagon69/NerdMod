@@ -6,8 +6,8 @@ class AmmoBattery extends DeusExAmmo;
 defaultproperties
 {
      bShowInfo=True
-     AmmoAmount=4
-     MaxAmmo=40
+     AmmoAmount=100
+     MaxAmmo=1000
      ItemName="Prod Charger"
      ItemArticle="a"
      PickupViewMesh=LodMesh'DeusExItems.AmmoProd'

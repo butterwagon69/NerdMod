@@ -91,7 +91,7 @@ defaultproperties
 {
      bShowInfo=True
      AmmoAmount=30
-     MaxAmmo=300
+     MaxAmmo=450
      ItemName="7.62x51mm Ammo"
      ItemArticle="some"
      PickupViewMesh=LodMesh'DeusExItems.Ammo762mm'

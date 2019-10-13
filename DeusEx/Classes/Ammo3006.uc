@@ -44,8 +44,8 @@ function bool UseAmmo(int AmountNeeded)
 defaultproperties
 {
      bShowInfo=True
-     AmmoAmount=6
-     MaxAmmo=96
+     AmmoAmount=4
+     MaxAmmo=60
      ItemName="30.06 Ammo"
      ItemArticle="some"
      PickupViewMesh=LodMesh'DeusExItems.Ammo3006'
