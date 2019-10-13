@@ -881,47 +881,50 @@ function DrawTargetAugmentation(GC gc)
 			else if ((AimBodyPart == 3) || (AimBodyPart == 4))
 				TargetPlayerLocationString = "("$msgLegs$")";
 		}
-
-		weapon = DeusExWeapon(Player.Weapon);
-		if ((weapon != None) && !weapon.bHandToHand && !bUseOldTarget)
-		{
-			// if the target is out of range, don't draw the reticle
-			if (weapon.MaxRange >= VSize(target.Location - Player.Location))
-			{
-				w = width;
-				h = height;
-				x = int(w * 0.5)-1;
-				y = int(h * 0.5)-1;
-
-				// scale based on screen resolution - default is 640x480
-				mult = FClamp(weapon.currentAccuracy * 80.0 * (width/640.0), corner, 80.0);
-
-				// make sure it's not too close to the center unless you have a perfect accuracy
-				mult = FMax(mult, corner+4.0);
-				if (weapon.currentAccuracy == 0.0)
-					mult = corner;
-
-				// draw the drop shadowed reticle
-				gc.SetTileColorRGB(0,0,0);
-				for (i=1; i>=0; i--)
-				{
-					gc.DrawBox(x+i, y-mult+i, 1, corner, 0, 0, 1, Texture'Solid');
-					gc.DrawBox(x+i, y+mult-corner+i, 1, corner, 0, 0, 1, Texture'Solid');
-					gc.DrawBox(x-(corner-1)/2+i, y-mult+i, corner, 1, 0, 0, 1, Texture'Solid');
-					gc.DrawBox(x-(corner-1)/2+i, y+mult+i, corner, 1, 0, 0, 1, Texture'Solid');
-
-					gc.DrawBox(x-mult+i, y+i, corner, 1, 0, 0, 1, Texture'Solid');
-					gc.DrawBox(x+mult-corner+i, y+i, corner, 1, 0, 0, 1, Texture'Solid');
-					gc.DrawBox(x-mult+i, y-(corner-1)/2+i, 1, corner, 0, 0, 1, Texture'Solid');
-					gc.DrawBox(x+mult+i, y-(corner-1)/2+i, 1, corner, 0, 0, 1, Texture'Solid');
-
-					gc.SetTileColor(crossColor);
-				}
-			}
-		}
 		// movers are invalid targets for the aug
 		if (target.IsA('DeusExMover'))
 			target = None;
+	}
+
+	weapon = DeusExWeapon(Player.Weapon);
+	if ((weapon != None) && !weapon.bHandToHand && !bUseOldTarget)
+	{
+		w = width;
+		h = height;
+		x = int(w * 0.5)-1;
+		y = int(h * 0.5)-1;
+
+		// scale based on screen resolution - default is 640x480
+		mult = FClamp(weapon.currentAccuracy * 80.0 * (width/640.0), 0, 640.0);
+
+
+		// make sure it's not too close to the center unless you have a perfect accuracy
+		// mult = FMax(mult, corner+4.0);
+		// if (weapon.currentAccuracy == 0.0)
+			// mult = corner;
+
+		// draw the drop shadowed reticle
+		// This is the box around the reticle that closes
+		gc.SetTileColorRGB(0,0,0);
+		// First loop: draw the shadow
+		// Second loop: draw the colored reticle
+		for (i=1; i>=0; i--)
+		{
+			// Top vertical line
+			gc.DrawBox(x+i, y-mult-corner+i, 1, corner, 0, 0, 1, Texture'Solid');
+			// Bottom Vertical line
+			gc.DrawBox(x+i, y+mult+i, 1, corner, 0, 0, 1, Texture'Solid');
+
+			gc.DrawBox(x-(corner-1)/2+i, y-mult-corner+i, corner, 1, 0, 0, 1, Texture'Solid');
+			gc.DrawBox(x-(corner-1)/2+i, y+mult+corner+i, corner, 1, 0, 0, 1, Texture'Solid');
+
+			gc.DrawBox(x-mult-corner+i, y+i, corner, 1, 0, 0, 1, Texture'Solid');
+			gc.DrawBox(x+mult+i, y+i, corner, 1, 0, 0, 1, Texture'Solid');
+			gc.DrawBox(x-mult-corner+i, y-(corner-1)/2+i, 1, corner, 0, 0, 1, Texture'Solid');
+			gc.DrawBox(x+mult+corner+i, y-(corner-1)/2+i, 1, corner, 0, 0, 1, Texture'Solid');
+
+			gc.SetTileColor(crossColor);
+		}
 	}
 
 	// let there be a 0.5 second delay before losing a target
