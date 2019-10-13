@@ -41,6 +41,8 @@ var bool bAggressiveExploded; //True if exploded by Aggressive Defense
 var localized string itemName;		// human readable name
 var localized string	itemArticle;	// article much like those for weapons
 
+var bool bIgnoresGravity;
+
 // network replication
 replication
 {
@@ -55,6 +57,12 @@ function PostBeginPlay()
 
    if (bEmitDanger)
 		AIStartEvent('Projectile', EAITYPE_Visual);
+}
+
+function setSpeed(float s){
+	MaxSpeed = s;
+	Speed =  s;
+	Velocity = speed*vector(Rotation);
 }
 
 //
@@ -206,8 +214,11 @@ simulated function Tick(float deltaTime)
 
 	dist = Abs(VSize(initLoc - Location));
 
-	if (dist > AccurateRange)		// start descent due to "gravity"
+	if (!bIgnoresGravity){
 		Acceleration = Region.Zone.ZoneGravity / 2;
+		// start descent due to "gravity"
+	}		
+	
 
    if ((Role < ROLE_Authority) && (bAggressiveExploded))
       Explode(Location, vect(0,0,1));
@@ -473,14 +484,18 @@ auto simulated state Flying
 {
 	simulated function ProcessTouch (Actor Other, Vector HitLocation)
 	{
+		local DeusExWeapon weap;
+		local Ammo amm;
+		local int i;
+		local inventory Inv;
 		if (bStuck)
 			return;
-
 		if ((Other != instigator) && (DeusExProjectile(Other) == None) &&
 			(Other != Owner))
 		{
 			damagee = Other;
 			Explode(HitLocation, Normal(HitLocation-damagee.Location));
+
 
          // DEUS_EX AMSD Spawn blood server side only
          if (Role == ROLE_Authority)
@@ -599,4 +614,5 @@ defaultproperties
      RemoteRole=ROLE_SimulatedProxy
      LifeSpan=60.000000
      RotationRate=(Pitch=65536,Yaw=65536)
+	 bIgnoresGravity=True
 }
