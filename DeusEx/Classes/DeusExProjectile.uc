@@ -493,7 +493,48 @@ auto simulated state Flying
 		if ((Other != instigator) && (DeusExProjectile(Other) == None) &&
 			(Other != Owner))
 		{
-			damagee = Other;
+			damagee = Other;		
+			if (bStickToWall){
+				if (Pawn(Other) != None){
+					// Somehow the ammo is getting destroyed if we loot the corpse
+					// for throwing knives with throwing knives in inventory
+					if (spawnWeaponClass != None)		// spawn the weapon
+					{
+						for( Inv=Pawn(Other).Inventory; Inv!=None; Inv=Inv.Inventory ){
+							if( Inv.IsA(spawnWeaponClass.Name)){
+								DeusExWeapon(Inv).PickupAmmoCount += 1;
+								break;
+							}
+						}
+						if (Inv == None){
+							weap = Spawn(spawnWeaponClass);
+							weap.PickupAmmoCount = 1;
+							weap.BecomeItem();
+							Pawn(Other).AddInventory(weap);
+						}
+					}
+					if (spawnAmmoClass != None)	// or spawn the ammo
+					// This seems to work well with crossbow bolts so far.
+					{
+						for( Inv=Pawn(Other).Inventory; Inv!=None; Inv=Inv.Inventory ){
+							if( Inv.IsA(spawnAmmoClass.Name) && DeusExAmmo(Inv).bPawnOwner==False){
+								Ammo(Inv).AmmoAmount += 1;
+								break;
+							}
+						}
+						if (Inv == None){
+							amm = Spawn(spawnAmmoClass);
+							amm.AmmoAmount = 1;
+							amm.BecomeItem();
+							Pawn(Other).AddInventory(amm);
+						}
+
+					}
+				
+					weap.GotoState('Idle2');
+					amm.GotoState('Idle2');
+				}
+			}
 			Explode(HitLocation, Normal(HitLocation-damagee.Location));
 
 
