@@ -31,4 +31,5 @@ defaultproperties
      CollisionRadius=8.500000
      CollisionHeight=2.000000
      bCollideActors=True
+		 dropRate=30
 }

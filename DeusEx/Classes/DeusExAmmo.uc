@@ -11,6 +11,7 @@ var localized String msgInfoRounds;
 
 var bool bShowInfo;
 var int MPMaxAmmo; //Max Ammo in multiplayer.
+var() int dropRate; // If special ammo, how rarely does this "drop" on corpses - 0 = Never; 100 = Always
 
 // ----------------------------------------------------------------------
 // PostBeginPlay()
@@ -74,4 +75,5 @@ defaultproperties
      ItemName="DEFAULT AMMO NAME - REPORT THIS AS A BUG"
      ItemArticle=""
      LandSound=Sound'DeusExSounds.Generic.PaperHit1'
+	 dropRate=0
 }

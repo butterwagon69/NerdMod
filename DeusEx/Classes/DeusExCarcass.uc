@@ -457,6 +457,23 @@ function Frob(Actor Frobber, Inventory frobWith)
 						// then just give the ammo and not the weapon.  Otherwise give
 						// the weapon normally. 
 						W = DeusExWeapon(player.FindInventoryType(item.Class));
+						ammoTypeCount = DeusExWeapon(item).NumAmmoTypesAvailable();
+
+						// Randomly drop alternate ammo
+						for(pickupAltAmmoIndex=0; pickupAltAmmoIndex<ammoTypeCount; pickupAltAmmoIndex++){
+							if ((Rand(100) < class<DeusExAmmo>(DeusExWeapon(item).AmmoNames[pickupAltAmmoIndex]).default.dropRate))
+							{
+									//pickupAltAmmoIndex = 1 + Rand(ammoTypeCount - 1);
+
+									altAmmo = Spawn(DeusExWeapon(item).AmmoNames[pickupAltAmmoIndex]);
+									pickupAltAmmoCount = 1 + Rand(altAmmo.default.AmmoAmount);
+									altAmmo.AmmoAmount = pickupAltAmmoCount;
+									altAmmo.Frob(player,None);
+									altAmmo = Ammo(player.FindInventoryType(altAmmo.Class));
+									AddReceivedItem(player, altAmmo, pickupAltAmmoCount);
+									player.UpdateAmmoBeltText(altAmmo);
+							}
+						}
 
 						// If the player already has this item in his inventory, piece of cake,
 						// we just give him the ammo.  However, if the Weapon is *not* in the 
