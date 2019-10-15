@@ -540,8 +540,8 @@ function InitializePawn()
 {
 	if (!bInitialized)
 	{
-		InitialInventory[6].Inventory = Class'DeusEx.WeaponLAM';
-		InitialInventory[7].Inventory = Class'DeusEx.AmmoLAM';
+		// InitialInventory[6].Inventory = Class'DeusEx.WeaponLAM';
+		// InitialInventory[7].Inventory = Class'DeusEx.AmmoLAM';
 		InitializeInventory();
 		InitializeAlliances();
 		InitializeHomeBase();
