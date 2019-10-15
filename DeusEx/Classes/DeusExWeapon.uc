@@ -2035,6 +2035,11 @@ function ForceAltFire()
 	AltFire(0);
 }
 
+function AltFire( float Value )
+{
+}
+
+
 //
 // ReadyClientToFire is called by the server telling the client it's ok to fire now
 //

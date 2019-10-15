@@ -3,7 +3,7 @@
 //=============================================================================
 class WeaponHideAGun extends DeusExWeapon;
 
-
+// No reload animation so just put away and bring up
 state Reload
 {
 ignores Fire, AltFire;
@@ -195,6 +195,9 @@ Done:
 	bFiring = False;
 	Finish();
 }
+
+
+// Fix item description
 function PreBeginPlay()
 {
 	// I don't know why I have to do this
@@ -205,59 +208,62 @@ function PreBeginPlay()
 
 
 
-
-
-
-
-
-
-
+function AltFire( float Value )
+{
+	ammoConsumption = 1;
+	numSlugsOverride=Default.numSlugsOverride / Default.ammoConsumption;
+	recoilStrength=default.RecoilStrength / Default.ammoConsumption;
+	Super.Fire(Value);
+	ammoConsumption = Default.ammoConsumption;
+	numSlugsOverride=Default.numSlugsOverride;
+	recoilStrength=Default.recoilStrength;
+}
 
 defaultproperties
 {
-     LowAmmoWaterMark=3
-     GoverningSkill=Class'DeusEx.SkillWeaponPistol'
-     NoiseLevel=0.010000
-     Concealability=CONC_All
-     ShotTime=1.000000
-     reloadTime=5.000000
-     HitDamage=6
-     maxRange=1200
-     AccurateRange=600
-     BaseAccuracy=0.400000
-     bHasMuzzleFlash=False
-     bEmitWeaponDrawn=False
-     AmmoNames(0)=Class'DeusEx.AmmoShell'
-	 AmmoName=Class'DeusEx.AmmoShell'
-     ReloadCount=3
-     PickupAmmoCount=3
-     bInstantHit=True
-     FireOffset=(X=-20.000000,Y=10.000000,Z=16.000000)
-     shakemag=50.000000
-     FireSound=Sound'DeusExSounds.Weapons.SawedOffShotgunFire'
-     SelectSound=Sound'DeusExSounds.Weapons.HideAGunSelect'
-     AltFireSound=Sound'DeusExSounds.Weapons.HideAGunSelect'
-     CockingSound=Sound'DeusExSounds.Weapons.HideAGunSelect'
-     ItemName="PS20"
-     PlayerViewOffset=(X=20.000000,Y=-10.000000,Z=-16.000000)
-     PlayerViewMesh=LodMesh'DeusExItems.HideAGun'
-     PickupViewMesh=LodMesh'DeusExItems.HideAGunPickup'
-     ThirdPersonMesh=LodMesh'DeusExItems.HideAGun3rd'
-     Icon=Texture'DeusExUI.Icons.BeltIconHideAGun'
-     largeIcon=Texture'DeusExUI.Icons.LargeIconHideAGun'
-     largeIconWidth=29
-     largeIconHeight=47
-     Description="The PS20 is a concealable short-barrel shotgun designed for emergency situations. The massive spread, colossal recoil and slow reload make it impractical for most situations."
-     beltDescription="PS20"
-     Mesh=LodMesh'DeusExItems.HideAGunPickup'
-     CollisionRadius=3.300000
-     CollisionHeight=0.600000
-     Mass=5.000000
-     Buoyancy=2.000000
+   LowAmmoWaterMark=2
+   GoverningSkill=Class'DeusEx.SkillWeaponPistol'
+   NoiseLevel=0.010000
+   Concealability=CONC_All
+   ShotTime=1.000000
+   reloadTime=5.000000
+   HitDamage=6
+   maxRange=1200
+   AccurateRange=600
+   BaseAccuracy=0.400000
+   bHasMuzzleFlash=False
+   bEmitWeaponDrawn=False
+   AmmoNames(0)=Class'DeusEx.AmmoShell'
+   AmmoName=Class'DeusEx.AmmoShell'
+   ReloadCount=2
+   PickupAmmoCount=2
+   bInstantHit=True
+   FireOffset=(X=-20.000000,Y=10.000000,Z=16.000000)
+   shakemag=50.000000
+   FireSound=Sound'DeusExSounds.Weapons.SawedOffShotgunFire'
+   SelectSound=Sound'DeusExSounds.Weapons.HideAGunSelect'
+   AltFireSound=Sound'DeusExSounds.Weapons.HideAGunSelect'
+   CockingSound=Sound'DeusExSounds.Weapons.HideAGunSelect'
+   ItemName="PS20"
+   PlayerViewOffset=(X=20.000000,Y=-10.000000,Z=-16.000000)
+   PlayerViewMesh=LodMesh'DeusExItems.HideAGun'
+   PickupViewMesh=LodMesh'DeusExItems.HideAGunPickup'
+   ThirdPersonMesh=LodMesh'DeusExItems.HideAGun3rd'
+   Icon=Texture'DeusExUI.Icons.BeltIconHideAGun'
+   largeIcon=Texture'DeusExUI.Icons.LargeIconHideAGun'
+   largeIconWidth=29
+   largeIconHeight=47
+   Description="The PS20 is a concealable short-barrel shotgun designed for emergency situations. The massive spread, colossal recoil and slow reload make it impractical for most situations."
+   beltDescription="PS20"
+   Mesh=LodMesh'DeusExItems.HideAGunPickup'
+   CollisionRadius=3.300000
+   CollisionHeight=0.600000
+   Mass=5.000000
+   Buoyancy=2.000000
 	 handleAbility=4.0000
 	 aimAbility=1.5
-	 numSlugsOverride=27
-	 ammoConsumption=3
-	 recoilStrength=60.00
+	 numSlugsOverride=18
+	 ammoConsumption=2
+	 recoilStrength=120.00
 	 NoiseLevel=5.000000
 }
