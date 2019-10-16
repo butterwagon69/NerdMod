@@ -30,7 +30,7 @@ state NormalFire
 
 		if ((AmmoType != None) && (AmmoType.AmmoAmount <= 0))
 			MultiSkins[3] = Texture'PinkMaskTex';
-	
+
 		Super.BeginState();
 	}
 }
@@ -43,6 +43,11 @@ function Tick(float deltaTime)
 			MultiSkins[3] = None;
 
 	Super.Tick(deltaTime);
+}
+
+simulated function PlayFiringSound()
+{
+		PlaySimSound( FireSound, SLOT_None, TransientSoundVolume, 2048 );
 }
 
 defaultproperties
