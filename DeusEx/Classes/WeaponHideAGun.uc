@@ -3,6 +3,8 @@
 //=============================================================================
 class WeaponHideAGun extends DeusExWeapon;
 
+
+var() int i;
 // No reload animation so just put away and bring up
 state Reload
 {
@@ -206,17 +208,37 @@ function PreBeginPlay()
 }
 
 
+function Fire(float Value)
+{
+	Super.Fire(Value);
+	GoToState('DelayNoise');
+}
 
+state DelayNoise
+{
+Begin:
+	for (i=1; i<ammoConsumption; i++){
+			sleep(0.1);
+			PlaySimSound( FireSound, SLOT_None, TransientSoundVolume, 2048 );
+	}
+	if ( MustReload() && CanReload() ){
+		ReloadAmmo();
+	} else {
+		GoToState('Idle');
+	}
+}
 
 function AltFire( float Value )
 {
 	ammoConsumption = 1;
 	numSlugsOverride=Default.numSlugsOverride / Default.ammoConsumption;
 	recoilStrength=default.RecoilStrength / Default.ammoConsumption;
+	NoiseLevel=default.NoiseLevel / Default.ammoConsumption;
 	Super.Fire(Value);
 	ammoConsumption = Default.ammoConsumption;
 	numSlugsOverride=Default.numSlugsOverride;
 	recoilStrength=Default.recoilStrength;
+	NoiseLevel=default.NoiseLevel;
 }
 
 defaultproperties
@@ -265,5 +287,5 @@ defaultproperties
 	 numSlugsOverride=18
 	 ammoConsumption=2
 	 recoilStrength=120.00
-	 NoiseLevel=5.000000
+	 NoiseLevel=2.000000
 }
