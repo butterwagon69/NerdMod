@@ -33,6 +33,23 @@ simulated function bool CanUpgradeWeapon(DeusExWeapon weapon)
 // ----------------------------------------------------------------------
 // ----------------------------------------------------------------------
 
+// Fix item description
+function PreBeginPlay()
+{
+	// I don't know why I have to do this
+	ItemName="Weapon Modification (Velocity)";
+	beltDescription="MOD VEL";
+	Description = "By lubricating the firing path with synthetic synovial fluid,"
+	@ " the drag on fired projectiles is greatly reduced with a consequent "
+	@ "improvement in terminal ballistics.|n|n<UNATCO OPS FILE NOTE SC111-BLUE> "
+	@ "Coating the primary valve system of a flamethrower or plasma gun in "
+	@ "synovial lubricant and then over-pressuring the delivery system will "
+	@ "also result in an increase in range. Little trick I learned during "
+	@ "field testing. -- Sam Carter <END NOTE>";
+	Super.PreBeginPlay();
+}
+
+
 defaultproperties
 {
      WeaponModifier=0.100000

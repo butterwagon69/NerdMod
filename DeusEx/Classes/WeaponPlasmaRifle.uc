@@ -17,6 +17,14 @@ simulated function PreBeginPlay()
 		MaxRange = mpMaxRange;
 		ReloadCount = mpReloadCount;
 	}
+	// I don't know why I have to do this
+	Description = "An experimental weapon that is currently being produced"
+	@ " as a series of one-off prototypes, the plasma gun superheats slugs"
+	@ " of magnetically-doped plastic and accelerates the resulting gas-liquid"
+	@ " mix using an array of linear magnets. The resulting plasma stream is "
+	@ "deadly when used against slow-moving targets. Also launches "
+	@ "super-capacitive bolts when loaded with standard electric prod batteries.";
+
 }
 
 simulated function SetAltProjectileParams(int ammoNum){

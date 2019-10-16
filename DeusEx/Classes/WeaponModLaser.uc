@@ -27,6 +27,14 @@ simulated function bool CanUpgradeWeapon(DeusExWeapon weapon)
 		return False;
 }
 
+// Fix item description
+function PreBeginPlay()
+{
+	// I don't know why I have to do this
+	Description = "A laser targeting dot eliminates any inaccuracy resulting from the inability to visually guage a projectile's point of impact, as well as providing information about distance to target.";
+	Super.PreBeginPlay();
+}
+
 // ----------------------------------------------------------------------
 // ----------------------------------------------------------------------
 

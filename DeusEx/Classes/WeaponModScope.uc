@@ -27,6 +27,14 @@ simulated function bool CanUpgradeWeapon(DeusExWeapon weapon)
 		return False;
 }
 
+// Fix item description
+function PreBeginPlay()
+{
+	// I don't know why I have to do this
+	Description = "A telescopic scope attachment provides zoom capability and increases accuracy against distant targets, as well as elevation indicators for low-velocity projectiles.";
+	Super.PreBeginPlay();
+}
+
 // ----------------------------------------------------------------------
 // ----------------------------------------------------------------------
 

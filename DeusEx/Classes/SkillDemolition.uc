@@ -25,6 +25,17 @@ simulated function PreBeginPlay()
 		LevelValues[2] = mpLevel2;
 		LevelValues[3] = mpLevel3;
 	}
+	// I don't know why I have to do this
+	Description = "The use of thrown explosive devices, including LAMs, gas "
+	@ "grenades, EMP grenades, and even electronic scramble grenades."
+	@ "|n|nUNTRAINED: An agent can throw grenades, attach them to a surface as"
+	@ " a proximity device, or attempt to disarm and remove a previously armed "
+	@ "proximity device.|n|nTRAINED: Grenade accuracy, range, and damage increases"
+	@ " slightly, as does the safety margin for disarming proximity devices."
+	@ "|n|nADVANCED: Grenade accuracy, range, and damage increases moderately,"
+	@ " as does the safety margin for disarming proximity devices."
+	@ "|n|nMASTER: An agent is an expert at all forms of demolition and can"
+	@ "pitch grenades at 90 miles per hour.";
 }
 
 defaultproperties

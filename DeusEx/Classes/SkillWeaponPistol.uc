@@ -28,6 +28,15 @@ simulated function PreBeginPlay()
 		LevelValues[2] = mpLevel2;
 		LevelValues[3] = mpLevel3;
 	}
+	// I don't know why I have to do this
+	Description = "The use of hand-held weapons, including the standard "
+	@ "10mm pistol, its stealth variant, and the mini-crossbow."
+	@ "|n|nUNTRAINED: An agent can use pistols."
+	@ "|n|nTRAINED: Accuracy, rate of fire, and weapon handling increase slightly,"
+	@ " while reloading is faster."
+	@ "|n|nADVANCED: Accuracy, rate of fire, and weapon handling increase "
+	@ "moderately, while reloading is even more rapid."
+	@ "|n|nMASTER: An agent is lethally precise with pistols.";
 }
 
 defaultproperties

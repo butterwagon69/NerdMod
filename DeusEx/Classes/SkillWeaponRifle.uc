@@ -25,6 +25,14 @@ simulated function PreBeginPlay()
 		LevelValues[2] = mpLevel2;
 		LevelValues[3] = mpLevel3;
 	}
+	// I don't know why I have to do this
+	Description = "The use of rifles, including assault rifles, sniper rifles, and shotguns."
+	@ "|n|nUNTRAINED: An agent can use rifles."
+	@ "|n|nTRAINED: Accuracy, rate of fire, and weapon handling increase slightly,"
+	@ " while reloading is faster."
+	@ "|n|nADVANCED: Accuracy, rate of fire, and weapon handling increase moderately, "
+	@ "while reloading is even more rapid."
+	@ "|n|nMASTER: An agent can take down a target a mile away with one shot.";
 }
 
 defaultproperties
