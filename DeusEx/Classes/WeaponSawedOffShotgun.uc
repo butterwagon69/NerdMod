@@ -78,4 +78,5 @@ defaultproperties
 		 handleAbility=4
 		 aimAbility=2.0
 		 bCanHaveModAccurateRange=True
+		 NoiseLevel=1.500000
 }
