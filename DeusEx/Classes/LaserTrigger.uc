@@ -189,7 +189,6 @@ function BeginPlay()
 function TakeDamage(int Damage, Pawn EventInstigator, vector HitLocation, vector Momentum, name DamageType)
 {
 	local MetalFragment frag;
-
 	if (DamageType == 'EMP')
 	{
 		confusionTimer = 0;
@@ -199,11 +198,12 @@ function TakeDamage(int Damage, Pawn EventInstigator, vector HitLocation, vector
 			PlaySound(sound'EMPZap', SLOT_None,,, 1280);
 		}
 	}
-	else if ((DamageType == 'Exploded') || (DamageType == 'Shot'))
+	else if ((DamageType == 'Exploded') || (DamageType == 'Shot') || (DamageType == 'Sabot'))
 	{
-		if (Damage >= minDamageThreshold)
+		if ((Damage >= minDamageThreshold) || (DamageType == 'Sabot'))
+		{
 			HitPoints -= Damage;
-
+		}
 		if (HitPoints <= 0)
 		{
 			frag = Spawn(class'MetalFragment', Owner);
@@ -245,4 +245,6 @@ defaultproperties
      Mesh=LodMesh'DeusExDeco.LaserEmitter'
      CollisionRadius=2.500000
      CollisionHeight=2.500000
+     bBlockPlayers=True
+		 bBlockActors=True
 }
