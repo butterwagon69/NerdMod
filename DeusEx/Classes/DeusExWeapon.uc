@@ -3329,6 +3329,7 @@ simulated function bool UpdateInfo(Object winObject)
 	if ((Default.ReloadCount == 0) || bHandToHand)
 	{
 		str = msgInfoNA;
+	    winInfo.AddInfoItem(msgInfoROF, str);
 	}
 	else
 	{
@@ -3338,8 +3339,8 @@ simulated function bool UpdateInfo(Object winObject)
 			str = msgInfoSingle;
 
 		str = str $ "," @ FormatFloatString(1.0/Default.ShotTime, 0.1) @ msgInfoRoundsPerSec;
+	    winInfo.AddInfoItem(msgInfoROF, str);
 	}
-	winInfo.AddInfoItem(msgInfoROF, str);
 
 	// reload time
 	if ((Default.ReloadCount == 0) || bHandToHand)
