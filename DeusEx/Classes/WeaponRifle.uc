@@ -23,6 +23,35 @@ simulated function PreBeginPlay()
       ReloadCount = 1;
       ReloadTime = ShotTime;
 	}
+    else
+    {
+        SetReloadCount();
+    }
+
+}
+
+simulated function SetReloadCount()
+{
+    // Sets the correct reload count for sniper rifle
+    local int numReloadMods;
+	local float reloadDiff;
+    switch( ammoLoadedIndex )
+    {
+		case 0:
+			numReloadMods = int(ModReloadCount / Class'WeaponModClip'.default.WeaponModifier);
+			// Replicating code from WeaponModClip because I am a big dummy
+
+			reloadDiff = Default.ReloadCount * Class'WeaponModClip'.default.WeaponModifier;
+			if (reloadDiff < 1)
+				reloadDiff = 1;
+			ReloadCount = Default.ReloadCount + int(reloadDiff * numReloadMods);
+			LowAmmoWaterMark = Default.LowAmmoWaterMark;
+            break;
+        case 1:
+			ReloadCount = 1;
+			LowAmmoWaterMark = 4;
+            break;
+    }
 }
 
 // Want to make snipers super dangerous
@@ -37,33 +66,22 @@ simulated function float GetWeaponSkill()
 	}
 }
 
-function bool LoadAmmo(int ammoNum){
+function bool LoadAmmo(int ammoNum)
+{
 	local bool result;
-	local float reloadDiff;
-	local int numReloadMods;
-	local int i;
 	result = super.LoadAmmo(ammoNum);
 	if (result)
 	{
 		if (ammoNum == 0)
 		{
 			ammoLoadedIndex = 0;
-			numReloadMods = int(ModReloadCount / Class'WeaponModClip'.default.WeaponModifier);
-			// Replicating code from WeaponModClip because I am a big dummy
-
-			reloadDiff = Default.ReloadCount * Class'WeaponModClip'.default.WeaponModifier;
-			if (reloadDiff < 1)
-				reloadDiff = 1;
-			ReloadCount = Default.ReloadCount + int(reloadDiff * numReloadMods);
-			LowAmmoWaterMark = Default.LowAmmoWaterMark;
 		}
 		else if (ammoNum == 1)
 		{
 			ammoLoadedIndex = 1;
-			ReloadCount = 1;
-			LowAmmoWaterMark = 4;
 		}
 	}
+    SetReloadCount();
 	return result;
 }
 
@@ -123,6 +141,7 @@ function GetAIVolume(out float volume, out float radius)
 	}
 	else
 	{
+        // magnum ammo is loud
 		volume = NoiseLevel*Pawn(Owner).SoundDampening;
 		radius = volume * 4800.0;
 	}
@@ -138,6 +157,7 @@ simulated function PlayFiringSound()
 	}
 	else
 	{
+        // No silencer for magnum ammo
 		PlaySimSound( FireSound, SLOT_None, TransientSoundVolume, 2048 );
 	}
 }
