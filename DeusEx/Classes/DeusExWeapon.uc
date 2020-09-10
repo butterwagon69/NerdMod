@@ -2912,13 +2912,6 @@ simulated function TraceFire( float Accuracy )
 		numSlugs = numSlugsOverride;
 	} else {
 		numSlugs = DeusExAmmo(AmmoType).numSlugs;
-		if (numSlugs == 0){
-			if (AreaOfEffect == AOE_Cone){
-				numSlugs = 5;
-			} else {
-				numSlugs = 1;
-			}
-		}
 	}
 	Accuracy = BaseAccuracy * DeusExAmmo(AmmoType).fSpreadMult;
 	if (numSlugs > 1)
