@@ -3281,23 +3281,12 @@ simulated function bool UpdateInfo(Object winObject)
 	winInfo.AddAmmoTypesItem(msgInfoAmmo, str);
 
 	// base damage
-	// Fix this later!!!
 	if (AreaOfEffect == AOE_Cone)
 	{
-		if (bInstantHit)
-		{
 			if (Level.NetMode != NM_Standalone)
-				dmg = Default.mpHitDamage * 5;
+				dmg = Default.mpHitDamage * numSlugsOverride;
 			else
-				dmg = Default.HitDamage * 5;
-		}
-		else
-		{
-			if (Level.NetMode != NM_Standalone)
-				dmg = Default.mpHitDamage * 3;
-			else
-				dmg = Default.HitDamage * 3;
-		}
+				dmg = Default.HitDamage * numSlugsOverride;
 	}
 	else
 	{
