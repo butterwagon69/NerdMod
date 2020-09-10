@@ -4312,6 +4312,78 @@ simulated function bool TestMPBeltSpot(int BeltSpot)
    return ((BeltSpot <= 3) && (BeltSpot >= 1));
 }
 
+
+// ----------------------------------------------------------------------
+// RenderOverlays()
+// Overwrite event to shake stuff a lot more and look cooler
+// ----------------------------------------------------------------------
+
+simulated event RenderOverlays( canvas Canvas )
+{
+	local rotator NewRot;
+	local bool bPlayerOwner;
+	local int Hand;
+	local PlayerPawn PlayerOwner;
+
+	if ( bHideWeapon || (Owner == None) )
+		return;
+
+	PlayerOwner = PlayerPawn(Owner);
+
+	if ( PlayerOwner != None )
+	{
+		if ( PlayerOwner.DesiredFOV != PlayerOwner.DefaultFOV )
+			return;
+		bPlayerOwner = true;
+		Hand = PlayerOwner.Handedness;
+
+		if (  (Level.NetMode == NM_Client) && (Hand == 2) )
+		{
+			bHideWeapon = true;
+			return;
+		}
+	}
+
+	if ( !bPlayerOwner || (PlayerOwner.Player == None) )
+		Pawn(Owner).WalkBob = vect(0,0,0);
+
+	if ( (bMuzzleFlash > 0) && bDrawMuzzleFlash && Level.bHighDetailMode && (MFTexture != None) )
+	{
+		MuzzleScale = Default.MuzzleScale * Canvas.ClipX/640.0;
+		if ( !bSetFlashTime )
+		{
+			bSetFlashTime = true;
+			FlashTime = Level.TimeSeconds + FlashLength;
+		}
+		else if ( FlashTime < Level.TimeSeconds )
+			bMuzzleFlash = 0;
+		if ( bMuzzleFlash > 0 )
+		{
+			if ( Hand == 0 )
+				Canvas.SetPos(Canvas.ClipX/2 - 0.5 * MuzzleScale * FlashS + Canvas.ClipX * (-0.2 * Default.FireOffset.Y * FlashO), Canvas.ClipY/2 - 0.5 * MuzzleScale * FlashS + Canvas.ClipY * (FlashY + FlashC));
+			else
+				Canvas.SetPos(Canvas.ClipX/2 - 0.5 * MuzzleScale * FlashS + Canvas.ClipX * (Hand * Default.FireOffset.Y * FlashO), Canvas.ClipY/2 - 0.5 * MuzzleScale * FlashS + Canvas.ClipY * FlashY);
+
+			Canvas.Style = 3;
+			Canvas.DrawIcon(MFTexture, MuzzleScale);
+			Canvas.Style = 1;
+		}
+	}
+	else
+		bSetFlashTime = false;
+
+	SetLocation( Owner.Location + CalcDrawOffset() );
+	NewRot = Pawn(Owner).ViewRotation;
+
+	if ( Hand == 0 )
+		newRot.Roll = -2 * Default.Rotation.Roll;
+	else
+		newRot.Roll = Default.Rotation.Roll * Hand;
+
+	setRotation(aimActual);
+	Canvas.DrawActor(self, false);
+}
+
 defaultproperties
 {
      bReadyToFire=True
