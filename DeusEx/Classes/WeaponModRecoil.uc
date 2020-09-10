@@ -16,6 +16,7 @@ function ApplyMod(DeusExWeapon weapon)
 		weapon.recoilStrength    += (weapon.Default.recoilStrength * WeaponModifier);
 		if (weapon.recoilStrength < 0.0)
 			weapon.recoilStrength = 0.0;
+        weapon.aimAbility        -= (weapon.Default.aimAbility * WeaponModifier);
 		weapon.ModRecoilStrength += WeaponModifier;
 	}
 }
@@ -38,10 +39,10 @@ simulated function bool CanUpgradeWeapon(DeusExWeapon weapon)
 defaultproperties
 {
      WeaponModifier=-0.100000
-     ItemName="Weapon Modification (Recoil)"
+     ItemName="Weapon Modification (Aiming)"
      Icon=Texture'DeusExUI.Icons.BeltIconWeaponModRecoil'
      largeIcon=Texture'DeusExUI.Icons.LargeIconWeaponModRecoil'
-     Description="A stock cushioned with polycellular shock absorbing material will significantly reduce perceived recoil."
-     beltDescription="MOD RECOL"
+     Description="Harmonic dampeners improve weapon stability for static aiming. A stock cushioned with polycellular shock absorbing material will significantly reduce perceived recoil."
+     beltDescription="MOD AIM"
      Skin=Texture'DeusExItems.Skins.WeaponModTex5'
 }
