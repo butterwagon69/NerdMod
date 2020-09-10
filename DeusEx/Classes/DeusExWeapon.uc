@@ -200,6 +200,7 @@ var localized String msgLockAcquire;
 var localized String msgLockLocked;
 var localized String msgRangeUnit;
 var localized String msgTimeUnit;
+var localized String msgImpulseUnit;
 var localized String msgMassUnit;
 var localized String msgNotWorking;
 
@@ -215,6 +216,8 @@ var localized String msgInfoReload;
 var localized String msgInfoRecoil;
 var localized String msgInfoAccuracy;
 var localized String msgInfoAccRange;
+var localized String msgInfoHandleAbility;
+var localized String msgInfoAimAbility;
 var localized String msgInfoMaxRange;
 var localized String msgInfoMass;
 var localized String msgInfoLaser;
@@ -3373,18 +3376,11 @@ simulated function bool UpdateInfo(Object winObject)
 		str = str @ "=" @ FormatFloatString(ReloadTime, 0.1) @ msgTimeUnit;
 	}
 
-	winInfo.AddInfoItem(msgInfoReload, str, HasReloadMod());
-
+    SetValueString(msgInfoHandleAbility, Default.HandleAbility, HandleAbility, 0.1, "", winInfo);
+    SetValueString(msgInfoAimAbility, Default.aimAbility, aimAbility, 0.1, "", winInfo);
 	// recoil
-	str = FormatFloatString(Default.recoilStrength, 0.01);
-	if (HasRecoilMod())
-	{
-		str = str @ BuildPercentString(ModRecoilStrength);
-		str = str @ "=" @ FormatFloatString(recoilStrength, 0.01);
-	}
-	str = str @ "Newton Seconds";
-	winInfo.AddInfoItem(msgInfoRecoil, str, HasRecoilMod());
-
+    SetValueString(msgInfoRecoil, Default.recoilStrength, recoilStrength, 0.01, msgImpulseUnit, winInfo);
+    
 	// base accuracy (2.0 = 0%, 0.0 = 100%)
 	if ( Level.NetMode != NM_Standalone )
 	{
@@ -3575,6 +3571,29 @@ simulated function String FormatFloatString(float value, float precision)
 	return str;
 }
 
+// ----------------------------------------------------------------------
+// SetValueString()
+// ----------------------------------------------------------------------
+simulated function SetValueString(string newLabel, float oldValue, float newValue, float precision, string unitString, PersonaInfoWindow infoWindow)
+{
+    local string oldValString;
+    local string newValString;
+    local string percentDifferenceString;
+    local string str;
+    local float percentDifference;
+    oldValString = FormatFloatString(oldValue, precision);
+    if (oldValue == newValue)
+    {
+        infoWindow.AddInfoItem(newLabel, oldValString @ unitString, false);
+        return;
+    }
+    percentDifference = (newValue - oldValue) / (oldValue);
+    percentDifferenceString = BuildPercentString(percentDifference);
+    newValString = FormatFloatString(newValue, precision);
+    str = oldValString @ percentDifferenceString @ "=" @ newValString @ unitString;
+    infoWindow.AddInfoItem(newLabel, str, true);
+    
+}
 // ----------------------------------------------------------------------
 // CR()
 // ----------------------------------------------------------------------
@@ -4342,6 +4361,7 @@ defaultproperties
      msgLockLocked="LOCKED"
      msgRangeUnit="FT"
      msgTimeUnit="SEC"
+     msgImpulseUnit="NEWTON SEC"
      msgMassUnit="LBS"
      msgNotWorking="This weapon doesn't work underwater"
      msgInfoAmmoLoaded="Ammo loaded:"
@@ -4353,6 +4373,8 @@ defaultproperties
      msgInfoRecoil="Recoil:"
      msgInfoAccuracy="Base Accuracy:"
      msgInfoAccRange="Acc. range:"
+     msgInfoHandleAbility="Handling"
+     msgInfoAimAbility="Stability"
      msgInfoMaxRange="Max. range:"
      msgInfoMass="Mass:"
      msgInfoLaser="Laser sight:"
