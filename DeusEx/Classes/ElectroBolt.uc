@@ -150,6 +150,7 @@ defaultproperties
      MomentumTransfer=5000
      ImpactSound=Sound'DeusExSounds.Weapons.PlasmaRifleHit'
      ExplosionDecal=Class'DeusEx.ScorchMark'
+     Skin=FireTexture'Effects.Electricity.Wepn_Prod_FX'
      Mesh=LodMesh'DeusExItems.PlasmaBolt'
      DrawScale=3.000000
      bUnlit=True
