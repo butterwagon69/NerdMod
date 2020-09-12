@@ -7,5 +7,6 @@
 System/*
 !System/*.ini
 !System/*.txt
+!System/*.int
 !System/DeusEx.u
 !README.md
