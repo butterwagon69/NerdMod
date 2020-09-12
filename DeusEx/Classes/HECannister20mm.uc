@@ -61,7 +61,7 @@ defaultproperties
      ItemArticle="a"
      speed=1200.000000
      MaxSpeed=1200.000000
-     Damage=150.000000
+     Damage=300.000000
      MomentumTransfer=40000
      SpawnSound=Sound'DeusExSounds.Weapons.GEPGunFire'
      ImpactSound=Sound'DeusExSounds.Generic.MediumExplosion2'
