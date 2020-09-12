@@ -2372,7 +2372,7 @@ simulated function float GetAnimSpeed()
 				mult = 1.0;
 		}
 		mult = Lerp(mult - 1.0, 1.0, 2.0);
-		return mult * (1.0 - 4.0*weaponSkill);
+		return mult * (1.0 - 2.0*weaponSkill);
 	}
 }
 
