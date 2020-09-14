@@ -674,11 +674,11 @@ simulated function AdjustAimMove(float moveSpeed){
 	skillAdjust = Lerp(FMax(- weaponSkill / 0.7, 0), 1.0, 0.1);
 	wobbleFreq = FMax(moveSpeed / runWobbleFreq, 0.05) ;
 	speedAdjust = 500*Square(moveSpeed / 64.0) ;
-	yawFreqAdjust = 1.0 - Square(FRand() - 0.5);
-	pitchFreqAdjust = 1.0 - Square(FRand() - 0.5);
+	yawFreqAdjust = 0.5;
+	pitchFreqAdjust = -0.5;
 	factor = skillAdjust * speedAdjust / handleAbility;
-	currentYawRate += factor * sin(6.28 * wobbleFreq * yawFreqAdjust * wobbleTime);
-	currentPitchRate += factor * cos(6.28 * wobbleFreq * pitchFreqAdjust * wobbleTime);
+	currentYawRate += factor * sin(6.28 * wobbleFreq * wobbleTime + yawFreqAdjust );
+	currentPitchRate += factor * cos(6.28 * wobbleFreq * wobbleTime + pitchFreqAdjust );
 }
 
 simulated function AdjustAimTurn(){
@@ -4466,6 +4466,6 @@ defaultproperties
 		 numSlugsOverride=0
 		 ammoConsumption=1
 		 bVisionImportant=True
-		 runWobbleFreq=16
+		 runWobbleFreq=128
 		 bCanShootFaster=True
 }
