@@ -13,7 +13,8 @@ function FirstFrame()
 {
 	local SandraRenton Sandra;
 	local FordSchick Ford;
-
+    local AugmentationUpgradeCannister augUpgrade;
+    local Vector canPosition;
 	Super.FirstFrame();
 
 	if (flags.GetBool('SandraWentToCalifornia'))
@@ -29,6 +30,11 @@ function FirstFrame()
 		{
 			foreach AllActors(class'FordSchick', Ford)
 				Ford.EnterWorld();
+
+            canPosition.X = -470;
+            canPosition.Y = 1360;
+            canPosition.Z = 250;
+            augUpgrade = spawn(class'AugmentationUpgradeCannister',,,canPosition);
 		}
 	}
 }

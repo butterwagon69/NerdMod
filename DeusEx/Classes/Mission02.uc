@@ -11,8 +11,10 @@ class Mission02 expands MissionScript;
 
 function FirstFrame()
 {
+    local bool fordExists;
 	local ScriptedPawn pawn;
-
+    local Vector fordPosition;
+    fordExists = false;
 	Super.FirstFrame();
 
 	if (localURL == "02_NYC_STREET")
@@ -86,8 +88,18 @@ function FirstFrame()
 		{
 			foreach AllActors(class'ScriptedPawn', pawn)
 				if (pawn.IsA('FordSchick'))
-					pawn.EnterWorld();
-
+                    {
+					    pawn.EnterWorld();
+                        fordExists = true;
+                    }
+            if (!fordExists)
+            {
+                fordPosition.X = -1096;
+                fordPosition.Y = 462;
+                fordPosition.Z = -65;
+                pawn = spawn(class'FordSchick',,,fordPosition);
+            
+            }
 			flags.SetBool('SchickThankedPlayer', True);
 		}
 	}
@@ -116,10 +128,10 @@ function PreTravel()
 	else if (localURL == "02_NYC_UNDERGROUND")
 	{
 		// if you leave the level with Ford Schick, set a flag
-		if (flags.GetBool('MS_FordFollowing') &&
+		if (flags.GetBool('FordSchickRescued') &&
 			!flags.GetBool('FordSchick_Dead'))
 		{
-			flags.SetBool('FordSchickRescued', True,, 9);
+			flags.SetBool('FordSchickRescued', True,, 0);
 		}
 	}
 
