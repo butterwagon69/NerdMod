@@ -24,7 +24,7 @@ enum ESkinColor
 };
 
 var() ESkinColor SkinColor;
-var bool bJustHit;
+var name justHitName;
 
 function BeginPlay()
 {
@@ -94,7 +94,7 @@ event HitWall(vector HitNormal, actor HitWall)
 
 function Timer()
 {
-	bJustHit = False;
+    justHitName = '';
 }
 
 function Bump(actor Other)
@@ -103,14 +103,14 @@ function Bump(actor Other)
 
 	if (Other.IsA('Poolball'))
 	{
-		if (!Poolball(Other).bJustHit)
+		if (Poolball(Other).justHitName != Name && justHitName != Other.Name)
 		{
 			PlaySound(sound'PoolballClack', SLOT_None);
 			HitNormal = Normal(Location - Other.Location);
 			Velocity = HitNormal * VSize(Other.Velocity);
 			Velocity.Z = 0;
-			bJustHit = True;
-			Poolball(Other).bJustHit = True;
+            justHitName = Other.Name;
+            Poolball(Other).justHitName = Name;
 			SetTimer(0.02, False);
 			Poolball(Other).SetTimer(0.02, False);
 		}
