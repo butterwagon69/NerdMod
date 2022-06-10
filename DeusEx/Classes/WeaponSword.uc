@@ -25,8 +25,8 @@ defaultproperties
      NoiseLevel=0.050000
      EnemyEffective=ENMEFF_Organic
      reloadTime=0.000000
-     maxRange=64
-     AccurateRange=64
+     maxRange=128
+     AccurateRange=128
      BaseAccuracy=1.000000
      bHasMuzzleFlash=False
      bHandToHand=True
